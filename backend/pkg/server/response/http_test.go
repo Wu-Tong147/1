@@ -91,6 +91,7 @@ func TestPredefinedErrors(t *testing.T) {
 		{"ErrChangePasswordCurrentUserInvalidPassword", ErrChangePasswordCurrentUserInvalidPassword, 400, "Users.ChangePasswordCurrentUser.InvalidPassword"},
 		{"ErrChangePasswordCurrentUserInvalidCurrentPassword", ErrChangePasswordCurrentUserInvalidCurrentPassword, 403, "Users.ChangePasswordCurrentUser.InvalidCurrentPassword"},
 		{"ErrChangePasswordCurrentUserInvalidNewPassword", ErrChangePasswordCurrentUserInvalidNewPassword, 400, "Users.ChangePasswordCurrentUser.InvalidNewPassword"},
+		{"ErrChangePasswordCurrentUserMailExists", ErrChangePasswordCurrentUserMailExists, 409, "Users.ChangePasswordCurrentUser.MailExists"},
 		{"ErrGetUserModelsNotFound", ErrGetUserModelsNotFound, 404, "Users.GetUser.ModelsNotFound"},
 		{"ErrCreateUserInvalidUser", ErrCreateUserInvalidUser, 400, "Users.CreateUser.InvalidUser"},
 		{"ErrPatchUserModelsNotFound", ErrPatchUserModelsNotFound, 404, "Users.PatchUser.ModelsNotFound"},

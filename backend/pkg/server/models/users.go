@@ -170,6 +170,7 @@ type Password struct {
 	CurrentPassword string `form:"current_password" json:"current_password" validate:"nefield=Password,min=5,max=100,required" gorm:"-"`
 	Password        string `form:"password" json:"password" validate:"stpass,max=100,required" gorm:"type:TEXT"`
 	ConfirmPassword string `form:"confirm_password" json:"confirm_password" validate:"eqfield=Password" gorm:"-"`
+	Mail            string `form:"mail,omitempty" json:"mail,omitempty" validate:"omitempty,max=50,vmail" gorm:"-"`
 }
 
 // TableName returns the table name string to guaranty use correct table

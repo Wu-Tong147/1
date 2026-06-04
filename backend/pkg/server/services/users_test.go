@@ -9,12 +9,14 @@ import (
 
 	"pentagi/pkg/server/auth"
 	"pentagi/pkg/server/models"
+	"pentagi/pkg/server/rdb"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestCreateUser_CreatesUserPreferences(t *testing.T) {
@@ -351,4 +353,77 @@ func TestCreateUser_DuplicateEmail(t *testing.T) {
 	var count int
 	db.Model(&models.User{}).Where("mail = ?", "duplicate@test.com").Count(&count)
 	assert.Equal(t, 1, count, "Should have only one user with this email")
+}
+
+func TestChangePasswordCurrentUser_WithChangedEmail(t *testing.T) {
+	db := setupTestDB(t)
+	defer db.Close()
+	seedLocalPassword(t, db, 1, "OldPass123!", true)
+
+	service := NewUserService(db, auth.NewUserCache(db))
+	c, w := setupTestContext(1, 2, "testhash1", nil)
+	setPasswordChangeRequest(t, c, models.Password{
+		CurrentPassword: "OldPass123!",
+		Password:        "NewPass123!",
+		ConfirmPassword: "NewPass123!",
+		Mail:            "changed@test.com",
+	})
+
+	service.ChangePasswordCurrentUser(c)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var user models.UserPassword
+	require.NoError(t, db.Where("id = ?", 1).Take(&user).Error)
+	assert.Equal(t, "changed@test.com", user.Mail)
+	assert.False(t, user.PasswordChangeRequired)
+	require.NoError(t, bcrypt.CompareHashAndPassword([]byte(user.Password), []byte("NewPass123!")))
+}
+
+func TestChangePasswordCurrentUser_DuplicateEmail(t *testing.T) {
+	db := setupTestDB(t)
+	defer db.Close()
+	seedLocalPassword(t, db, 1, "OldPass123!", true)
+
+	service := NewUserService(db, auth.NewUserCache(db))
+	c, w := setupTestContext(1, 2, "testhash1", nil)
+	setPasswordChangeRequest(t, c, models.Password{
+		CurrentPassword: "OldPass123!",
+		Password:        "NewPass123!",
+		ConfirmPassword: "NewPass123!",
+		Mail:            "user2@test.com",
+	})
+
+	service.ChangePasswordCurrentUser(c)
+
+	assert.Equal(t, http.StatusConflict, w.Code)
+
+	var user models.UserPassword
+	require.NoError(t, db.Where("id = ?", 1).Take(&user).Error)
+	assert.Equal(t, "user1@test.com", user.Mail)
+	require.NoError(t, bcrypt.CompareHashAndPassword([]byte(user.Password), []byte("OldPass123!")))
+}
+
+func seedLocalPassword(t *testing.T, db *gorm.DB, userID uint64, password string, passwordChangeRequired bool) string {
+	t.Helper()
+
+	encPassword, err := rdb.EncryptPassword(password)
+	require.NoError(t, err)
+
+	require.NoError(t, db.Model(&models.User{}).Where("id = ?", userID).Updates(map[string]any{
+		"password":                 string(encPassword),
+		"password_change_required": passwordChangeRequired,
+	}).Error)
+
+	return string(encPassword)
+}
+
+func setPasswordChangeRequest(t *testing.T, c *gin.Context, password models.Password) {
+	t.Helper()
+
+	body, err := json.Marshal(password)
+	require.NoError(t, err)
+
+	c.Request, _ = http.NewRequest("PUT", "/user/password", bytes.NewBuffer(body))
+	c.Request.Header.Set("Content-Type", "application/json")
 }

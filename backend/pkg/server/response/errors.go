@@ -44,6 +44,7 @@ var ErrUsersInvalidRequest = NewHttpError(400, "Users.InvalidRequest", "invalid 
 var ErrChangePasswordCurrentUserInvalidPassword = NewHttpError(400, "Users.ChangePasswordCurrentUser.InvalidPassword", "failed to validate user password")
 var ErrChangePasswordCurrentUserInvalidCurrentPassword = NewHttpError(403, "Users.ChangePasswordCurrentUser.InvalidCurrentPassword", "invalid current password")
 var ErrChangePasswordCurrentUserInvalidNewPassword = NewHttpError(400, "Users.ChangePasswordCurrentUser.InvalidNewPassword", "invalid new password form data")
+var ErrChangePasswordCurrentUserMailExists = NewHttpError(409, "Users.ChangePasswordCurrentUser.MailExists", "email already exists")
 var ErrGetUserModelsNotFound = NewHttpError(404, "Users.GetUser.ModelsNotFound", "user linked models not found")
 var ErrCreateUserInvalidUser = NewHttpError(400, "Users.CreateUser.InvalidUser", "failed to validate user")
 var ErrPatchUserModelsNotFound = NewHttpError(404, "Users.PatchUser.ModelsNotFound", "user linked models not found")

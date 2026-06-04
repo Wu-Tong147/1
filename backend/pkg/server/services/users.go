@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"strings"
 
 	"pentagi/pkg/server/auth"
 	"pentagi/pkg/server/logger"
@@ -116,6 +117,7 @@ func (s *UserService) GetCurrentUser(c *gin.Context) {
 // @Failure 400 {object} response.errorResp "invalid account password form data"
 // @Failure 403 {object} response.errorResp "updating account password not permitted"
 // @Failure 404 {object} response.errorResp "current user not found"
+// @Failure 409 {object} response.errorResp "email already exists"
 // @Failure 500 {object} response.errorResp "internal error on updating account password"
 // @Router /user/password [put]
 func (s *UserService) ChangePasswordCurrentUser(c *gin.Context) {
@@ -126,11 +128,15 @@ func (s *UserService) ChangePasswordCurrentUser(c *gin.Context) {
 		user    models.UserPassword
 	)
 
-	if err = c.ShouldBindJSON(&form); err != nil || form.Valid() != nil {
-		if err == nil {
-			err = form.Valid()
-		}
+	if err = c.ShouldBindJSON(&form); err != nil {
 		logger.FromContext(c).WithError(err).Errorf("error binding JSON")
+		response.Error(c, response.ErrChangePasswordCurrentUserInvalidPassword, err)
+		return
+	}
+
+	form.Mail = strings.ToLower(strings.TrimSpace(form.Mail))
+	if err = form.Valid(); err != nil {
+		logger.FromContext(c).WithError(err).Errorf("error validating password profile form")
 		response.Error(c, response.ErrChangePasswordCurrentUserInvalidPassword, err)
 		return
 	}
@@ -171,9 +177,28 @@ func (s *UserService) ChangePasswordCurrentUser(c *gin.Context) {
 		"password":                 string(encPass),
 		"password_change_required": false,
 	}
+	if form.Mail != "" && form.Mail != user.Mail {
+		var count int
+		if err = s.db.Model(&models.User{}).Where("mail = ? AND id <> ?", form.Mail, uid).Count(&count).Error; err != nil {
+			logger.FromContext(c).WithError(err).Errorf("error checking mail uniqueness for current user")
+			response.Error(c, response.ErrInternal, err)
+			return
+		}
+		if count > 0 {
+			logger.FromContext(c).Errorf("email already exists for another user")
+			response.Error(c, response.ErrChangePasswordCurrentUserMailExists, nil)
+			return
+		}
+
+		updates["mail"] = form.Mail
+	}
 
 	if err = s.db.Model(&user).Scopes(scope).Updates(updates).Error; err != nil {
 		logger.FromContext(c).WithError(err).Errorf("error updating password for current user")
+		if strings.Contains(strings.ToLower(err.Error()), "unique") {
+			response.Error(c, response.ErrChangePasswordCurrentUserMailExists, err)
+			return
+		}
 		response.Error(c, response.ErrInternal, err)
 		return
 	}

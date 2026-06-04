@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -10,11 +10,15 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { Input } from '@/components/ui/input';
 import { api, type ApiErrorResponse, type ApiHttpError } from '@/lib/axios';
+import { useUser } from '@/providers/user-provider';
 
 const passwordChangeSchema = z
     .object({
         confirmPassword: z.string().min(1, { message: 'Confirm your password' }),
         currentPassword: z.string().min(1, { message: 'Current password is required' }),
+        email: z.string().email({ message: 'Enter a valid email address' }).max(50, {
+            message: 'Email must not exceed 50 characters',
+        }),
         newPassword: z
             .string()
             .min(8, { message: 'Password must be at least 8 characters' })
@@ -66,14 +70,18 @@ export function PasswordChangeForm({
     showSkip = false,
 }: PasswordChangeFormProps) {
     const [error, setError] = useState<null | string>(null);
+    const [isEmailEditable, setIsEmailEditable] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const { authInfo, refreshAuthInfo } = useUser();
+    const currentEmail = authInfo?.user?.mail || '';
 
     const form = useForm<PasswordChangeFormValues>({
         defaultValues: {
             confirmPassword: '',
             currentPassword: '',
+            email: currentEmail,
             newPassword: '',
         },
         resolver: zodResolver(passwordChangeSchema),
@@ -81,20 +89,40 @@ export function PasswordChangeForm({
 
     const handleSubmit = async (values: PasswordChangeFormValues) => {
         setError(null);
+        const nextEmail = values.email.trim().toLowerCase();
+        const emailChanged = nextEmail !== currentEmail.trim().toLowerCase();
 
         try {
-            await api.put('/user/password', {
+            const payload: {
+                confirm_password: string;
+                current_password: string;
+                mail?: string;
+                password: string;
+            } = {
                 confirm_password: values.confirmPassword,
                 current_password: values.currentPassword,
                 password: values.newPassword,
-            });
+            };
 
-            form.reset();
+            if (emailChanged) {
+                payload.mail = nextEmail;
+            }
+
+            await api.put('/user/password', payload);
+            await refreshAuthInfo();
+
+            form.reset({
+                confirmPassword: '',
+                currentPassword: '',
+                email: nextEmail,
+                newPassword: '',
+            });
+            setIsEmailEditable(false);
             setShowCurrentPassword(false);
             setShowNewPassword(false);
             setShowConfirmPassword(false);
 
-            toast.success('Password successfully changed');
+            toast.success(emailChanged ? 'Profile successfully updated' : 'Password successfully changed');
 
             if (onSuccess) {
                 onSuccess();
@@ -117,6 +145,9 @@ export function PasswordChangeForm({
                         break;
                     case 'Users.ChangePasswordCurrentUser.InvalidNewPassword':
                         errorMessage = 'New password does not meet requirements';
+                        break;
+                    case 'Users.ChangePasswordCurrentUser.MailExists':
+                        errorMessage = 'Email is already in use';
                         break;
                     case 'Users.ChangePasswordCurrentUser.InvalidPassword':
                         errorMessage = 'Password validation failed';
@@ -141,6 +172,38 @@ export function PasswordChangeForm({
                 className="flex flex-col gap-4"
                 onSubmit={form.handleSubmit(handleSubmit)}
             >
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <Input
+                                        {...field}
+                                        className={!isEmailEditable ? 'cursor-pointer pr-10' : 'pr-10'}
+                                        onClick={() => setIsEmailEditable(true)}
+                                        readOnly={!isEmailEditable}
+                                    />
+                                    <Button
+                                        aria-label="Edit email"
+                                        className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                                        onClick={() => setIsEmailEditable(true)}
+                                        size="sm"
+                                        tabIndex={-1}
+                                        type="button"
+                                        variant="ghost"
+                                    >
+                                        <Pencil className="text-muted-foreground size-4" />
+                                    </Button>
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 <FormField
                     control={form.control}
                     name="currentPassword"
@@ -270,7 +333,7 @@ export function PasswordChangeForm({
                         </Button>
                     )}
                     <FormSubmitButton>
-                        <span>Update Password</span>
+                        <span>Save Profile</span>
                     </FormSubmitButton>
                 </div>
             </form>

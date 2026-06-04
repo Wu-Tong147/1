@@ -5,7 +5,6 @@ import {
     FileText,
     Folder,
     GitFork,
-    KeyRound,
     LayoutDashboard,
     LibraryBig,
     LogOut,
@@ -64,7 +63,7 @@ interface FlowMenuItemProps {
 }
 
 export function MainSidebar() {
-    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const isDashboardActive = useMatch('/dashboard');
     const isFlowsActive = useMatch('/flows/*');
     const isTemplatesActive = useMatch('/templates/*');
@@ -359,9 +358,9 @@ export function MainSidebar() {
                                 {user?.type === 'local' && (
                                     <>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={() => setIsPasswordModalOpen(true)}>
-                                            <KeyRound className="mr-2 size-4" />
-                                            Change Password
+                                        <DropdownMenuItem onClick={() => setIsProfileModalOpen(true)}>
+                                            <UserIcon className="mr-2 size-4" />
+                                            Profile
                                         </DropdownMenuItem>
                                     </>
                                 )}
@@ -389,16 +388,16 @@ export function MainSidebar() {
             />
 
             <Dialog
-                onOpenChange={setIsPasswordModalOpen}
-                open={isPasswordModalOpen}
+                onOpenChange={setIsProfileModalOpen}
+                open={isProfileModalOpen}
             >
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Change Password</DialogTitle>
+                        <DialogTitle>Profile</DialogTitle>
                     </DialogHeader>
                     <PasswordChangeForm
-                        onCancel={() => setIsPasswordModalOpen(false)}
-                        onSuccess={() => setIsPasswordModalOpen(false)}
+                        onCancel={() => setIsProfileModalOpen(false)}
+                        onSuccess={() => setIsProfileModalOpen(false)}
                     />
                 </DialogContent>
             </Dialog>
