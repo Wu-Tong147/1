@@ -8,65 +8,56 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { Input } from '@/components/ui/input';
-import { InputPassword } from '@/components/ui/input-password';
 import { api, getApiErrorCode, getApiErrorMessage } from '@/lib/axios';
 import { useUser } from '@/providers/user-provider';
 
-const emailChangeSchema = z.object({
-    currentPassword: z.string().min(1, { message: 'Current password is required' }),
-    newEmail: z
+const nameChangeSchema = z.object({
+    name: z
         .string()
-        .min(1, { message: 'Email is required' })
-        .email({ message: 'Invalid email address' })
-        .max(50, { message: 'Email must not exceed 50 characters' }),
+        .trim()
+        .min(1, { message: 'Name is required' })
+        .max(70, { message: 'Name must not exceed 70 characters' }),
 });
 
 const ERROR_BY_CODE: Record<string, string> = {
     AuthRequired: 'Authentication required',
-    'Users.ChangeEmailCurrentUser.EmailAlreadyExists': 'Email address is already in use',
-    'Users.ChangeEmailCurrentUser.InvalidCurrentPassword': 'Current password is incorrect',
-    'Users.ChangeEmailCurrentUser.InvalidEmail': 'New email does not meet requirements',
+    'Users.ChangeNameCurrentUser.InvalidName': 'New name does not meet requirements',
     'Users.NotFound': 'User not found',
 };
 
-interface EmailChangeFormProps {
+interface NameChangeFormProps {
     isModal?: boolean;
     onCancel?: () => void;
     onSuccess?: () => void;
 }
 
-type EmailChangeFormValues = z.infer<typeof emailChangeSchema>;
+type NameChangeFormValues = z.infer<typeof nameChangeSchema>;
 
-export function EmailChangeForm({ isModal = true, onCancel, onSuccess }: EmailChangeFormProps) {
+export function NameChangeForm({ isModal = true, onCancel, onSuccess }: NameChangeFormProps) {
     const [error, setError] = useState<null | string>(null);
-    const { refreshAuthInfo } = useUser();
+    const { authInfo, refreshAuthInfo } = useUser();
 
-    const form = useForm<EmailChangeFormValues>({
+    const form = useForm<NameChangeFormValues>({
         defaultValues: {
-            currentPassword: '',
-            newEmail: '',
+            name: authInfo?.user?.name ?? '',
         },
-        resolver: zodResolver(emailChangeSchema),
+        resolver: zodResolver(nameChangeSchema),
     });
 
-    const handleSubmit = async (values: EmailChangeFormValues) => {
+    const handleSubmit = async (values: NameChangeFormValues) => {
         setError(null);
 
         try {
-            await api.put('/user/email', {
-                current_password: values.currentPassword,
-                mail: values.newEmail,
-            });
+            await api.put('/user/name', { name: values.name });
 
-            form.reset();
-            toast.success('Email successfully updated');
+            toast.success('Name successfully updated');
 
             await refreshAuthInfo();
 
             onSuccess?.();
         } catch (err: unknown) {
             const code = getApiErrorCode(err);
-            setError((code && ERROR_BY_CODE[code]) ?? getApiErrorMessage(err, 'Failed to update email'));
+            setError((code && ERROR_BY_CODE[code]) ?? getApiErrorMessage(err, 'Failed to update name'));
         }
     };
 
@@ -78,32 +69,14 @@ export function EmailChangeForm({ isModal = true, onCancel, onSuccess }: EmailCh
             >
                 <FormField
                     control={form.control}
-                    name="currentPassword"
+                    name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Current Password</FormLabel>
-                            <FormControl>
-                                <InputPassword
-                                    {...field}
-                                    placeholder="Enter your current password"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="newEmail"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>New Email</FormLabel>
+                            <FormLabel>Display name</FormLabel>
                             <FormControl>
                                 <Input
                                     {...field}
-                                    placeholder="Enter your new email address"
-                                    type="email"
+                                    placeholder="Enter your display name"
                                 />
                             </FormControl>
                             <FormMessage />
@@ -125,7 +98,7 @@ export function EmailChangeForm({ isModal = true, onCancel, onSuccess }: EmailCh
                         </Button>
                     )}
                     <FormSubmitButton size="sm">
-                        <span>Update Email</span>
+                        <span>Update Name</span>
                     </FormSubmitButton>
                 </div>
             </form>
