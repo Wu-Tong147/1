@@ -1,0 +1,232 @@
+#cloud-config
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PentAGI Virtual Desktop — Hetzner Cloud Bootstrap                      ║
+# ║                                                                          ║
+# ║  Steps:                                                                  ║
+# ║  1. Edit every value marked  ← CHANGE THIS                              ║
+# ║  2. Hetzner Console → Create Server → "User Data" → paste this file     ║
+# ║  3. Add a Firewall rule: TCP 6080 inbound (your IP only is safest)       ║
+# ║  4. Wait ~5 min for first-boot, then open:                              ║
+# ║       http://<server-ip>:6080/vnc.html                                  ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+package_update: true
+package_upgrade: false
+
+# ── Embedded desktop files (written before runcmd) ──────────────────────────
+write_files:
+
+  - path: /opt/pentagi-setup/desktop/Dockerfile
+    content: |
+      FROM debian:bookworm-slim
+
+      ENV DEBIAN_FRONTEND=noninteractive \
+          HOME=/root \
+          DISPLAY=:1 \
+          VNC_RESOLUTION=1920x1080 \
+          VNC_PASSWORD=pentagi \
+          PENTAGI_URL=https://pentagi:8443
+
+      RUN apt-get update && apt-get install -y --no-install-recommends \
+          xfce4 \
+          xfce4-terminal \
+          xfce4-taskmanager \
+          xfce4-screenshooter \
+          tigervnc-standalone-server \
+          tigervnc-common \
+          novnc \
+          websockify \
+          chromium \
+          dbus-x11 \
+          x11-xserver-utils \
+          x11-utils \
+          xdotool \
+          fonts-liberation \
+          fonts-noto-core \
+          procps \
+          curl \
+          wget \
+          bash \
+          && rm -rf /var/lib/apt/lists/*
+
+      RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml
+
+      COPY desktop/entrypoint.sh /entrypoint.sh
+      COPY desktop/start.sh /start.sh
+      RUN chmod +x /entrypoint.sh /start.sh
+
+      EXPOSE 6080 5901
+      ENTRYPOINT ["/entrypoint.sh"]
+
+  - path: /opt/pentagi-setup/desktop/entrypoint.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -e
+      mkdir -p "$HOME/.vnc"
+      printf '%s' "${VNC_PASSWORD:-pentagi}" | vncpasswd -f > "$HOME/.vnc/passwd"
+      chmod 600 "$HOME/.vnc/passwd"
+      cat > "$HOME/.vnc/xstartup" << 'XSTARTUP'
+      #!/bin/bash
+      unset SESSION_MANAGER
+      unset DBUS_SESSION_BUS_ADDRESS
+      export XDG_RUNTIME_DIR="/tmp/xdg-runtime-root"
+      mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
+      exec dbus-launch --exit-with-session startxfce4
+      XSTARTUP
+      chmod +x "$HOME/.vnc/xstartup"
+      exec /start.sh
+
+  - path: /opt/pentagi-setup/desktop/start.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -e
+      RESOLUTION="${VNC_RESOLUTION:-1920x1080}"
+      PENTAGI_URL="${PENTAGI_URL:-https://pentagi:8443}"
+      VNC_PORT=5901
+      NOVNC_PORT=6080
+      log() { echo "[desktop] $*"; }
+
+      log "Starting Xvnc on :1 (${RESOLUTION})"
+      Xvnc :1 \
+          -geometry "$RESOLUTION" \
+          -depth 24 \
+          -rfbport "$VNC_PORT" \
+          -SecurityTypes VncAuth \
+          -PasswordFile "$HOME/.vnc/passwd" \
+          -fg &
+      XVNC_PID=$!
+
+      for i in $(seq 1 20); do
+          xdpyinfo -display :1 >/dev/null 2>&1 && break
+          sleep 0.5
+      done
+      log "Xvnc ready"
+
+      log "Starting Xfce4"
+      DISPLAY=:1 XDG_RUNTIME_DIR="/tmp/xdg-runtime-root" \
+          dbus-launch --exit-with-session startxfce4 &
+      XFCE_PID=$!
+      sleep 6
+
+      log "Opening Chromium -> $PENTAGI_URL"
+      DISPLAY=:1 HOME="$HOME" chromium \
+          --no-sandbox \
+          --disable-dev-shm-usage \
+          --ignore-certificate-errors \
+          --start-maximized \
+          --disable-infobars \
+          --disable-session-crashed-bubble \
+          --disable-restore-session-state \
+          "$PENTAGI_URL" >/var/log/chromium.log 2>&1 &
+
+      log "Starting noVNC on port $NOVNC_PORT"
+      websockify --web=/usr/share/novnc/ "$NOVNC_PORT" "localhost:$VNC_PORT" \
+          >/var/log/novnc.log 2>&1 &
+      NOVNC_PID=$!
+
+      log "Desktop ready: http://localhost:$NOVNC_PORT/vnc.html"
+
+      while true; do
+          if ! kill -0 "$XVNC_PID" 2>/dev/null; then
+              log "Xvnc exited -- shutting down"; exit 1
+          fi
+          if ! kill -0 "$NOVNC_PID" 2>/dev/null; then
+              log "noVNC exited -- restarting"
+              websockify --web=/usr/share/novnc/ "$NOVNC_PORT" "localhost:$VNC_PORT" \
+                  >/var/log/novnc.log 2>&1 &
+              NOVNC_PID=$!
+          fi
+          sleep 5
+      done
+
+  - path: /opt/pentagi-setup/docker-compose-desktop.yml
+    content: |
+      services:
+        desktop:
+          build:
+            context: .
+            dockerfile: desktop/Dockerfile
+          image: pentagi-desktop:latest
+          container_name: pentagi-desktop
+          hostname: pentagi-desktop
+          restart: unless-stopped
+          environment:
+            - VNC_PASSWORD=${DESKTOP_VNC_PASSWORD:-pentagi}
+            - VNC_RESOLUTION=${DESKTOP_VNC_RESOLUTION:-1920x1080}
+            - PENTAGI_URL=${DESKTOP_PENTAGI_URL:-https://pentagi:8443}
+          ports:
+            - "${DESKTOP_LISTEN_IP:-0.0.0.0}:${DESKTOP_NOVNC_PORT:-6080}:6080"
+            - "${DESKTOP_LISTEN_IP:-0.0.0.0}:${DESKTOP_VNC_PORT:-5901}:5901"
+          depends_on:
+            - pentagi
+          networks:
+            - pentagi-network
+          shm_size: 2g
+          logging:
+            options:
+              max-size: 50m
+              max-file: "3"
+
+  # ── .env — edit ALL values marked CHANGE THIS before pasting ──────────────
+  - path: /opt/pentagi-setup/.env
+    content: |
+      # ── Database ──────────────────────────────────────────────────────────
+      PENTAGI_POSTGRES_USER=postgres
+      PENTAGI_POSTGRES_PASSWORD=CHANGE_THIS_DB_PASSWORD
+      PENTAGI_POSTGRES_DB=pentagidb
+
+      # ── Auth cookies (any random string ≥ 32 chars) ───────────────────────
+      COOKIE_SIGNING_SALT=CHANGE_THIS_RANDOM_SALT_32CHARS_MIN
+
+      # ── LLM provider — set at least one ───────────────────────────────────
+      OPEN_AI_KEY=
+      ANTHROPIC_API_KEY=
+      GEMINI_API_KEY=
+
+      # ── Virtual desktop ───────────────────────────────────────────────────
+      # noVNC binds to 0.0.0.0 so it is reachable from your browser.
+      # Use Hetzner Firewall to restrict port 6080 to your IP only.
+      DESKTOP_LISTEN_IP=0.0.0.0
+      DESKTOP_NOVNC_PORT=6080
+      DESKTOP_VNC_PORT=5901
+      DESKTOP_VNC_PASSWORD=CHANGE_THIS_VNC_PASSWORD
+      DESKTOP_VNC_RESOLUTION=1920x1080
+      DESKTOP_PENTAGI_URL=https://pentagi:8443
+
+      # ── PentAGI ports (internal — keep 127.0.0.1) ─────────────────────────
+      PENTAGI_LISTEN_IP=127.0.0.1
+      PENTAGI_LISTEN_PORT=8443
+      PGVECTOR_LISTEN_IP=127.0.0.1
+      PGVECTOR_LISTEN_PORT=5432
+
+# ── First-boot commands ──────────────────────────────────────────────────────
+runcmd:
+  # 1. Install Docker
+  - curl -fsSL https://get.docker.com | sh
+  - systemctl enable --now docker
+
+  # 2. Clone the public pentagi repo
+  - git clone --depth 1 https://github.com/vxcontrol/pentagi.git /opt/pentagi
+
+  # 3. Overlay our desktop additions
+  - cp -r /opt/pentagi-setup/desktop        /opt/pentagi/desktop
+  - cp    /opt/pentagi-setup/docker-compose-desktop.yml /opt/pentagi/
+  - cp    /opt/pentagi-setup/.env           /opt/pentagi/.env
+
+  # 4. Build the desktop image and start the full stack
+  - >
+    cd /opt/pentagi &&
+    docker compose
+    -f docker-compose.yml
+    -f docker-compose-desktop.yml
+    up -d --build
+
+  # 5. Print the access URL to the system console log
+  - >
+    echo "=====================================================" &&
+    echo "PentAGI Desktop ready:" &&
+    echo "  http://$(curl -s ifconfig.me):6080/vnc.html" &&
+    echo "  VNC password: see DESKTOP_VNC_PASSWORD in /opt/pentagi/.env" &&
+    echo "====================================================="
