@@ -1,0 +1,37 @@
+# Virtual desktop overlay — adds a browser-accessible Linux desktop (Xfce4 + noVNC)
+# with Chromium pre-loaded on the PentAGI UI.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose-desktop.yml up -d
+#
+# Access:
+#   http://localhost:6080/vnc.html          (noVNC web client — no plugin needed)
+#   VNC client: localhost:5901              (password set by DESKTOP_VNC_PASSWORD)
+
+services:
+  desktop:
+    build:
+      context: .
+      dockerfile: desktop/Dockerfile
+    image: pentagi-desktop:latest
+    container_name: pentagi-desktop
+    hostname: pentagi-desktop
+    restart: unless-stopped
+    environment:
+      - VNC_PASSWORD=${DESKTOP_VNC_PASSWORD:-pentagi}
+      - VNC_RESOLUTION=${DESKTOP_VNC_RESOLUTION:-1920x1080}
+      - PENTAGI_URL=${DESKTOP_PENTAGI_URL:-https://pentagi:8443}
+    ports:
+      # noVNC browser access
+      - "${DESKTOP_LISTEN_IP:-127.0.0.1}:${DESKTOP_NOVNC_PORT:-6080}:6080"
+      # Raw VNC access (optional, for native VNC clients)
+      - "${DESKTOP_LISTEN_IP:-127.0.0.1}:${DESKTOP_VNC_PORT:-5901}:5901"
+    depends_on:
+      - pentagi
+    networks:
+      - pentagi-network
+    shm_size: 2g
+    logging:
+      options:
+        max-size: 50m
+        max-file: "3"
