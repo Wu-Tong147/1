@@ -54,16 +54,17 @@ type containerPathStatResult struct {
 }
 
 type dockerClient struct {
-	db       database.Querier
-	logger   *logrus.Logger
-	dataDir  string
-	hostDir  string
-	client   *client.Client
-	inside   bool
-	defImage string
-	socket   string
-	network  string
-	publicIP string
+	db            database.Querier
+	logger        *logrus.Logger
+	dataDir       string
+	hostDir       string
+	client        *client.Client
+	inside        bool
+	defImage      string
+	socket        string
+	sandboxSocket string // proxy address for sandbox containers; tcp:// URL or unix socket path; empty = use raw socket
+	network       string
+	publicIP      string
 }
 
 type DockerClient interface {
@@ -111,7 +112,27 @@ func NewDockerClient(ctx context.Context, db database.Querier, cfg *config.Confi
 		socket = getHostDockerSocket(ctx, cli)
 	}
 	inside := cfg.DockerInside
+	if inside {
+		logrus.Warn("DOCKER_INSIDE=true: the host Docker socket will be bind-mounted into " +
+			"every sandbox container. Any process inside the sandbox can use the socket " +
+			"to ask the host daemon to launch a privileged container, achieving a full " +
+			"host escape (issue #337). Set DOCKER_INSIDE=false unless DinD is required, " +
+			"or set DOCKER_SANDBOX_SOCKET to a least-privilege proxy (e.g. tcp://docker-socket-proxy:2375) " +
+			"to reduce API surface. Note: tecnativa proxy does not inspect request bodies " +
+			"and cannot block Privileged containers; see issue #337 for full mitigation.")
+	}
+	sandboxSocket := cfg.DockerSandboxSocket
+	if inside && sandboxSocket == "" {
+		// Fall back to the raw socket if no proxy is configured.
+		sandboxSocket = socket
+	}
 	netName := cfg.DockerNetwork
+	if inside && strings.HasPrefix(sandboxSocket, "tcp://") && netName == "" {
+		logrus.Warn("DOCKER_SANDBOX_SOCKET is a tcp:// proxy address but DOCKER_NETWORK is empty: " +
+			"sandbox containers will run on the default bridge and cannot resolve the proxy hostname. " +
+			"Set DOCKER_NETWORK to a network shared with the docker-socket-proxy service " +
+			"(e.g. DOCKER_NETWORK=pentagi-network) — without this, all in-sandbox docker commands will fail.")
+	}
 	publicIP := cfg.DockerPublicIP
 	defImage := strings.ToLower(cfg.DockerDefaultImage)
 	if defImage == "" {
@@ -142,28 +163,30 @@ func NewDockerClient(ctx context.Context, db database.Querier, cfg *config.Confi
 
 	logger := logrus.StandardLogger()
 	logger.WithFields(logrus.Fields{
-		"docker_name":    info.Name,
-		"docker_arch":    info.Architecture,
-		"docker_version": info.ServerVersion,
-		"client_version": cli.ClientVersion(),
-		"data_dir":       dataDir,
-		"host_dir":       hostDir,
-		"docker_inside":  inside,
-		"docker_socket":  socket,
-		"public_ip":      publicIP,
+		"docker_name":         info.Name,
+		"docker_arch":         info.Architecture,
+		"docker_version":      info.ServerVersion,
+		"client_version":      cli.ClientVersion(),
+		"data_dir":            dataDir,
+		"host_dir":            hostDir,
+		"docker_inside":       inside,
+		"docker_socket":       socket,
+		"docker_sandbox_socket": sandboxSocket,
+		"public_ip":           publicIP,
 	}).Debug("Docker client initialized")
 
 	return &dockerClient{
-		db:       db,
-		client:   cli,
-		dataDir:  dataDir,
-		hostDir:  hostDir,
-		logger:   logger,
-		inside:   inside,
-		defImage: defImage,
-		socket:   socket,
-		network:  netName,
-		publicIP: publicIP,
+		db:            db,
+		client:        cli,
+		dataDir:       dataDir,
+		hostDir:       hostDir,
+		logger:        logger,
+		inside:        inside,
+		defImage:      defImage,
+		socket:        socket,
+		sandboxSocket: sandboxSocket,
+		network:       netName,
+		publicIP:      publicIP,
 	}, nil
 }
 
@@ -280,7 +303,17 @@ func (dc *dockerClient) RunContainer(
 	hostConfig.Binds = append(hostConfig.Binds, fmt.Sprintf("%s:%s", hostDir, WorkFolderPathInContainer))
 
 	if dc.inside {
-		hostConfig.Binds = append(hostConfig.Binds, fmt.Sprintf("%s:%s", dc.socket, defaultDockerSocketPath))
+		if strings.HasPrefix(dc.sandboxSocket, "tcp://") {
+			// Proxy speaks TCP — inject DOCKER_HOST so the Docker CLI inside the
+			// sandbox container routes to the proxy instead of the host socket.
+			// The proxy container must be on the same Docker network as the sandbox.
+			config.Env = append(config.Env, "DOCKER_HOST="+dc.sandboxSocket)
+		} else {
+			// Unix socket (raw host socket or a socket-based proxy).
+			// Bind-mount it at the standard location so DOCKER_HOST remains unset
+			// and the Docker CLI uses unix:///var/run/docker.sock by default.
+			hostConfig.Binds = append(hostConfig.Binds, fmt.Sprintf("%s:%s", dc.sandboxSocket, defaultDockerSocketPath))
+		}
 	}
 
 	hostConfig.LogConfig = container.LogConfig{

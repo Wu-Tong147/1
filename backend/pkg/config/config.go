@@ -31,6 +31,7 @@ type Config struct {
 	DockerInside                 bool   `env:"DOCKER_INSIDE" envDefault:"false"`
 	DockerNetAdmin               bool   `env:"DOCKER_NET_ADMIN" envDefault:"false"`
 	DockerSocket                 string `env:"DOCKER_SOCKET"`
+	DockerSandboxSocket          string `env:"DOCKER_SANDBOX_SOCKET"` // optional proxy socket for sandbox containers (see issue #337)
 	DockerNetwork                string `env:"DOCKER_NETWORK"`
 	DockerPublicIP               string `env:"DOCKER_PUBLIC_IP" envDefault:"0.0.0.0"`
 	DockerWorkDir                string `env:"DOCKER_WORK_DIR"`
