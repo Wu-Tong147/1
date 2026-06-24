@@ -22,6 +22,69 @@ networks:
     name: langfuse-network
 
 services:
+  # docker-socket-proxy fronts /var/run/docker.sock with an API allowlist
+  # so sandbox containers have a more restricted view of the Docker daemon.
+  #
+  # IMPORTANT — partial mitigation only (issue #337):
+  # tecnativa/docker-socket-proxy filters by URL/method, NOT by request body.
+  # With CONTAINERS=1, agents can still POST /containers/create with
+  # Privileged=true or a host bind-mount in the body.  This proxy reduces
+  # the attack surface (removes EXEC, SECRETS, SWARM, SYSTEM, etc.) but does
+  # NOT fully prevent a prompt-injected agent from escaping the sandbox.
+  # The safest option remains DOCKER_INSIDE=false.
+  #
+  # The proxy listens on TCP port 2375. Sandbox containers reach it via
+  # DOCKER_HOST=tcp://docker-socket-proxy:2375 (network reachability required).
+  # No socket sharing is needed.
+  #
+  # Usage: docker compose --profile dind up
+  #   DOCKER_INSIDE=true
+  #   DOCKER_SANDBOX_SOCKET=tcp://docker-socket-proxy:2375
+  #   DOCKER_NETWORK=pentagi-network  # REQUIRED: sandboxes must share this network
+  #                                   # to resolve the proxy hostname
+  docker-socket-proxy:
+    image: ${DOCKER_PROXY_IMAGE:-tecnativa/docker-socket-proxy:latest}
+    restart: unless-stopped
+    container_name: docker-socket-proxy
+    hostname: docker-socket-proxy
+    # No privileged needed — proxy only reads the host socket read-only.
+    read_only: true
+    cap_drop: [ALL]
+    environment:
+      # Allow only what agents genuinely need for DinD.
+      # NOTE: CONTAINERS+POST still permits Privileged containers in request bodies;
+      # see the service comment above.
+      - CONTAINERS=1
+      - IMAGES=1
+      - NETWORKS=1
+      - VOLUMES=1
+      - INFO=1
+      - PING=1
+      - VERSION=1
+      - POST=1
+      # Explicitly block everything else:
+      - AUTH=0
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - DISTRIBUTION=0
+      - EVENTS=0
+      - EXEC=0
+      - GRPC=0
+      - PLUGINS=0
+      - SECRETS=0
+      - SERVICES=0
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=0
+    volumes:
+      - ${PENTAGI_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
+    networks:
+      - pentagi-network
+    profiles:
+      - dind
+
   pentagi:
     image: ${PENTAGI_IMAGE:-vxcontrol/pentagi:latest}
     restart: unless-stopped
@@ -165,6 +228,10 @@ services:
       - DOCKER_INSIDE=${DOCKER_INSIDE:-false}
       - DOCKER_NET_ADMIN=${DOCKER_NET_ADMIN:-false}
       - DOCKER_SOCKET=${DOCKER_SOCKET:-}
+      # When DOCKER_INSIDE=true, optionally set this to tcp://docker-socket-proxy:2375
+      # (when using the dind profile) to reduce the Docker API surface exposed to
+      # sandbox containers. See service comment above for limitations.
+      - DOCKER_SANDBOX_SOCKET=${DOCKER_SANDBOX_SOCKET:-}
       - DOCKER_NETWORK=${DOCKER_NETWORK:-}
       - DOCKER_PUBLIC_IP=${DOCKER_PUBLIC_IP:-}
       - DOCKER_WORK_DIR=${DOCKER_WORK_DIR:-}
