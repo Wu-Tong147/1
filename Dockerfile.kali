@@ -1,0 +1,58 @@
+# Custom Kali pentest image with the worker firewall tools.
+# Build: docker build -f Dockerfile.kali -t local/kali-pentest:latest .
+# Use:   DOCKER_DEFAULT_IMAGE_FOR_PENTEST=local/kali-pentest:latest in .env
+
+FROM vxcontrol/kali-linux:latest
+
+COPY verify_pentagi_tooling.sh /usr/local/bin/verify_pentagi_tooling.sh
+COPY impacket-scripts /usr/local/bin/impacket-scripts
+
+# Keep this layer small. Full Kali upgrades are large enough to exhaust the
+# local Colima disk during iterative worker rebuilds.
+RUN apt-get update && \
+    chmod +x /usr/local/bin/verify_pentagi_tooling.sh && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iptables python3-netifaces && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    apt-get update; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl unzip; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+      amd64|arm64) pd_arch="$arch" ;; \
+      *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    tmp="$(mktemp -d)"; \
+    for spec in \
+      "naabu 2.6.1" \
+      "katana 1.6.1" \
+      "alterx 0.1.0" \
+      "httpx 1.9.0"; \
+    do \
+      set -- $spec; \
+      name="$1"; version="$2"; \
+      url="https://github.com/projectdiscovery/$name/releases/download/v$version/${name}_${version}_linux_${pd_arch}.zip"; \
+      curl -fsSL "$url" -o "$tmp/$name.zip"; \
+      unzip -q "$tmp/$name.zip" -d "$tmp/$name"; \
+      install -m 0755 "$(find "$tmp/$name" -type f -name "$name" | head -n 1)" "/usr/local/bin/$name"; \
+    done; \
+    mkdir -p /root/go/bin; \
+    for name in naabu katana alterx httpx; do \
+      ln -sf "/usr/local/bin/$name" "/root/go/bin/$name"; \
+    done; \
+    rm -rf "$tmp"; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    chmod +x /usr/local/bin/impacket-scripts; \
+    ln -sf /usr/bin/bloodhound-python /usr/local/bin/bloodhound.py; \
+    for name in nuclei subfinder dnsx ffuf; do \
+      if [ -x "/root/go/bin/$name" ]; then ln -sf "/root/go/bin/$name" "/usr/local/bin/$name"; fi; \
+    done; \
+    printf '%s\n' '#!/usr/bin/env sh' 'cd /usr/share/responder' 'exec /usr/bin/python3 ./Responder.py "$@"' > /usr/local/bin/responder; \
+    chmod +x /usr/local/bin/responder
+
+# nuclei v3.9+ needs Go 1.25; apt provides v3.8.0; update templates only
+# ponytail: go install skipped — build containers can't reach github.com via git; apt upgrade covers the rest
+RUN nuclei -update-templates -disable-update-check 2>/dev/null || true

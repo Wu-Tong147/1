@@ -1,0 +1,4 @@
+interface:
+  display_name: "PentAGI Kali Tools"
+  short_description: "Verify and operate the PentAGI Kali worker toolchain."
+  default_prompt: "Use the PentAGI Kali tools runbook to verify the worker, inspect tool setup, and run safe smoke checks."

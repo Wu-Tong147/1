@@ -1,0 +1,91 @@
+simple:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 0.6
+  top_p: 0.95
+  n: 1
+  max_tokens: 8192
+
+simple_json:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 0.6
+  top_p: 0.95
+  n: 1
+  max_tokens: 4096
+  json: true
+
+primary_agent:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 1.0
+  top_p: 0.95
+  n: 1
+  max_tokens: 16384
+
+A:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 1.0
+  top_p: 0.95
+  n: 1
+  max_tokens: 16384
+
+generator:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 1.0
+  top_p: 0.95
+  n: 1
+  max_tokens: 32768
+
+refiner:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 1.0
+  top_p: 0.95
+  n: 1
+  max_tokens: 32768
+
+adviser:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 1.0
+  top_p: 0.95
+  n: 1
+  max_tokens: 8192
+
+reflector:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 0.6
+  top_p: 0.95
+  n: 1
+  max_tokens: 4096
+
+searcher:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 0.6
+  top_p: 0.95
+  n: 1
+  max_tokens: 4096
+
+enricher:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 0.6
+  top_p: 0.95
+  n: 1
+  max_tokens: 4096
+
+coder:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 1.0
+  top_p: 0.95
+  n: 1
+  max_tokens: 20480
+
+installer:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 1.0
+  top_p: 0.95
+  n: 1
+  max_tokens: 16384
+
+pentester:
+  model: mimo-v2.5-pro-ultraspeed
+  temperature: 1.0
+  top_p: 0.95
+  n: 1
+  max_tokens: 16384

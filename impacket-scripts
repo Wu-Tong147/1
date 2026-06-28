@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+if [ $# -eq 0 ]; then
+  echo 'Usage: impacket-scripts <script-name> [args...]'
+  echo 'Available scripts:'
+  ls /usr/bin/impacket-* 2>/dev/null | sed 's|/usr/bin/impacket-||'
+  exit 1
+fi
+script=$1
+shift
+exec /usr/bin/impacket-$script "$@"

@@ -18,6 +18,12 @@ node_modules
 .cursorignore
 .cursor/
 .agents/
+!.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/pentagi-kali-tools/
+!.agents/skills/pentagi-kali-tools/**
 skills-lock.json
 
 build/*
@@ -34,4 +40,3 @@ data/*
 
 # OS
 Thumbs.db
-
