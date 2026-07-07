@@ -118,6 +118,10 @@ func (q *queue[I, O]) Stop() error {
 	}
 
 	q.cancel()
+	// Close the queue channel to ensure workers can exit their range loops.
+	// The reader's defer close(q.queue) may not run immediately after cancel(),
+	// so we close it here to prevent goroutine leaks.
+	close(q.queue)
 	q.mx.Unlock()
 	q.wg.Wait()
 
@@ -164,7 +168,6 @@ func (q *queue[I, O]) worker(wid int) {
 
 func (q *queue[I, O]) reader() {
 	defer q.wg.Done()
-	defer close(q.queue)
 
 	logger := logrus.WithFields(logrus.Fields{
 		"component":   "queue_reader",
