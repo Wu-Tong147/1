@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -17,7 +18,8 @@ import (
 var ErrNothingToLoad = errors.New("nothing to load")
 
 type FlowContext struct {
-	DB database.Querier
+	DB     database.Querier
+	RawDB  *sql.DB
 
 	UserID  int64
 	FlowID  int64

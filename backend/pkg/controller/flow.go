@@ -85,6 +85,7 @@ type newFlowWorkerCtx struct {
 
 type flowWorkerCtx struct {
 	db     database.Querier
+	rawDB  *sql.DB
 	cfg    *config.Config
 	docker docker.DockerClient
 	provs  providers.ProviderController
@@ -236,6 +237,7 @@ func NewFlowWorker(
 
 	flowCtx := &FlowContext{
 		DB:         fwc.db,
+		RawDB:      fwc.rawDB,
 		UserID:     fwc.userID,
 		FlowID:     flow.ID,
 		TraceID:    observation.TraceID(),
@@ -394,6 +396,7 @@ func LoadFlowWorker(ctx context.Context, flow database.Flow, fwc flowWorkerCtx) 
 
 	flowCtx := &FlowContext{
 		DB:         fwc.db,
+		RawDB:      fwc.rawDB,
 		UserID:     flow.UserID,
 		FlowID:     flow.ID,
 		TraceID:    observation.TraceID(),

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"sort"
@@ -54,6 +55,7 @@ type FlowController interface {
 
 type flowController struct {
 	db     database.Querier
+	rawDB  *sql.DB
 	mx     *sync.Mutex
 	cfg    *config.Config
 	flows  map[int64]FlowWorker
@@ -72,6 +74,7 @@ type flowController struct {
 
 func NewFlowController(
 	db database.Querier,
+	rawDB *sql.DB,
 	cfg *config.Config,
 	docker docker.DockerClient,
 	provs providers.ProviderController,
@@ -79,6 +82,7 @@ func NewFlowController(
 ) FlowController {
 	return &flowController{
 		db:     db,
+		rawDB:  rawDB,
 		mx:     &sync.Mutex{},
 		cfg:    cfg,
 		flows:  make(map[int64]FlowWorker),
@@ -105,6 +109,7 @@ func (fc *flowController) LoadFlows(ctx context.Context) error {
 	for _, flow := range flows {
 		fw, err := LoadFlowWorker(ctx, flow, flowWorkerCtx{
 			db:     fc.db,
+			rawDB:  fc.rawDB,
 			cfg:    fc.cfg,
 			docker: fc.docker,
 			provs:  fc.provs,
@@ -156,6 +161,7 @@ func (fc *flowController) CreateFlow(
 		resources: resources,
 		flowWorkerCtx: flowWorkerCtx{
 			db:     fc.db,
+			rawDB:  fc.rawDB,
 			cfg:    fc.cfg,
 			docker: fc.docker,
 			provs:  fc.provs,
@@ -203,6 +209,7 @@ func (fc *flowController) CreateAssistant(
 
 	flowWorkerCtx := flowWorkerCtx{
 		db:     fc.db,
+		rawDB:  fc.rawDB,
 		cfg:    fc.cfg,
 		docker: fc.docker,
 		provs:  fc.provs,

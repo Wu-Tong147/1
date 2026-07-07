@@ -77,9 +77,16 @@ func (stc *subtaskController) GenerateSubtasks(ctx context.Context) error {
 		return fmt.Errorf("no subtasks generated for task %d", stc.taskCtx.TaskID)
 	}
 
-	// TODO: change it to insert subtasks in transaction
+	// Use transaction to ensure atomicity of multiple CreateSubtask calls
+	tx, err := stc.taskCtx.RawDB.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction for task %d: %w", stc.taskCtx.TaskID, err)
+	}
+	defer tx.Rollback()
+
+	txQueries := database.New(tx)
 	for _, info := range plan {
-		_, err := stc.taskCtx.DB.CreateSubtask(ctx, database.CreateSubtaskParams{
+		_, err := txQueries.CreateSubtask(ctx, database.CreateSubtaskParams{
 			Status:      database.SubtaskStatusCreated,
 			TaskID:      stc.taskCtx.TaskID,
 			Title:       info.Title,
@@ -88,6 +95,10 @@ func (stc *subtaskController) GenerateSubtasks(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed to create subtask for task %d: %w", stc.taskCtx.TaskID, err)
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction for task %d: %w", stc.taskCtx.TaskID, err)
 	}
 
 	return nil
@@ -115,14 +126,26 @@ func (stc *subtaskController) RefineSubtasks(ctx context.Context) error {
 		}
 	}
 
-	err = stc.taskCtx.DB.DeleteSubtasks(ctx, subtaskIDs)
+	// Use transaction to ensure atomicity of delete and create operations
+	tx, err := stc.taskCtx.RawDB.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("failed to delete subtasks for task %d: %w", stc.taskCtx.TaskID, err)
+		return fmt.Errorf("failed to begin transaction for task %d: %w", stc.taskCtx.TaskID, err)
+	}
+	defer tx.Rollback()
+
+	txQueries := database.New(tx)
+
+	// Delete old subtasks within transaction
+	if len(subtaskIDs) > 0 {
+		err = txQueries.DeleteSubtasks(ctx, subtaskIDs)
+		if err != nil {
+			return fmt.Errorf("failed to delete subtasks for task %d: %w", stc.taskCtx.TaskID, err)
+		}
 	}
 
-	// TODO: change it to insert subtasks in transaction and union it with delete ones
+	// Create new subtasks within the same transaction
 	for _, info := range plan {
-		_, err := stc.taskCtx.DB.CreateSubtask(ctx, database.CreateSubtaskParams{
+		_, err := txQueries.CreateSubtask(ctx, database.CreateSubtaskParams{
 			Status:      database.SubtaskStatusCreated,
 			TaskID:      stc.taskCtx.TaskID,
 			Title:       info.Title,
@@ -131,6 +154,10 @@ func (stc *subtaskController) RefineSubtasks(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed to create subtask for task %d: %w", stc.taskCtx.TaskID, err)
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction for task %d: %w", stc.taskCtx.TaskID, err)
 	}
 
 	return nil

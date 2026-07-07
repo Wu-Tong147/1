@@ -137,7 +137,7 @@ func main() {
 		log.Fatalf("LLM provider controller initialization failed: %v", err)
 	}
 	subscriptions := subscriptions.NewSubscriptionsController()
-	controller := controller.NewFlowController(queries, cfg, client, providers, subscriptions)
+	controller := controller.NewFlowController(queries, db, cfg, client, providers, subscriptions)
 
 	if err := controller.LoadFlows(ctx); err != nil {
 		log.Fatalf("Active flows restoration failed: %v", err)
