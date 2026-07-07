@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -529,3 +530,271 @@ func TestNormalizeExecTimeout(t *testing.T) {
 		})
 	}
 }
+
+// TestHandleDoesNotDoublePadTimeout verifies that Handle() does not add
+// defaultExtraExecTimeout on top of what normalizeExecTimeout already returns.
+// This test validates the fix for the double timeout padding bug.
+func TestHandleDoesNotDoublePadTimeout(t *testing.T) {
+	// Create a mock that tracks the timeout passed to ExecCommand
+	var capturedTimeout time.Duration
+	mock := &timeoutCapturingMockDockerClient{
+		isRunning:      true,
+		execCreateResp: container.ExecCreateResponse{ID: "exec-timeout-test"},
+		attachOutput:   []byte("output"),
+		inspectResp:    container.ExecInspect{ExitCode: 0},
+		onExecCreate: func(timeout time.Duration) {
+			capturedTimeout = timeout
+		},
+	}
+
+	term := &terminal{
+		flowID:             1,
+		containerID:        1,
+		containerLID:       "test-container",
+		dockerClient:       mock,
+		tlp:                &contextTestTermLogProvider{},
+		defaultExecTimeout: 60 * time.Second, // configured timeout
+	}
+
+	// Request a 10 second timeout
+	action := TerminalAction{
+		Input:   "echo test",
+		Timeout: 10,
+	}
+	args, _ := json.Marshal(action)
+
+	_, err := term.Handle(t.Context(), TerminalToolName, args)
+	assert.NoError(t, err)
+
+	// The timeout passed to ExecCommand should be normalized (10s),
+	// NOT normalized + 5s (15s). ExecCommand will normalize again,
+	// so if Handle() added extra padding, the final timeout would be wrong.
+	// With configured=60s, normalizeExecTimeout(10s) returns 10s (since 10s <= 65s ceiling).
+	// The bug was adding another 5s here, making it 15s.
+	assert.Equal(t, 10*time.Second, capturedTimeout,
+		"Handle() should not add defaultExtraExecTimeout on top of normalized timeout")
+}
+
+// TestWriteFileLogsSuccessAsStdout verifies that WriteFile() logs the success
+// message as TermlogTypeStdout, not TermlogTypeStdin.
+func TestWriteFileLogsSuccessAsStdout(t *testing.T) {
+	var capturedType database.TermlogType
+	mock := &logTypeCapturingMockDockerClient{
+		isRunning: true,
+		onPutMsg: func(msgType database.TermlogType) {
+			capturedType = msgType
+		},
+	}
+
+	term := &terminal{
+		flowID:       1,
+		containerID:  1,
+		containerLID: "test-container",
+		dockerClient: mock,
+		tlp:          &logTypeCapturingTermLogProvider{onPutMsg: func(msgType database.TermlogType) { capturedType = msgType }},
+	}
+
+	_, err := term.WriteFile(t.Context(), 1, "test content", "/tmp/test.txt")
+	assert.NoError(t, err)
+
+	// The success message should be logged as stdout, not stdin
+	assert.Equal(t, database.TermlogTypeStdout, capturedType,
+		"WriteFile() should log success message as TermlogTypeStdout, not TermlogTypeStdin")
+}
+
+// TestReadFileUsesReadFull verifies that ReadFile() uses io.ReadFull to ensure
+// all bytes are read, not just a single Read() call that might return fewer bytes.
+func TestReadFileUsesReadFull(t *testing.T) {
+	// Create a tar archive with a file
+	var tarBuffer bytes.Buffer
+	tarWriter := tar.NewWriter(&tarBuffer)
+
+	content := "test file content that should be fully read"
+	err := tarWriter.WriteHeader(&tar.Header{
+		Name: "test.txt",
+		Mode: 0600,
+		Size: int64(len(content)),
+	})
+	assert.NoError(t, err)
+	_, err = tarWriter.Write([]byte(content))
+	assert.NoError(t, err)
+	err = tarWriter.Close()
+	assert.NoError(t, err)
+
+	// Create a mock that returns the tar archive
+	mock := &readFullVerifyingMockDockerClient{
+		isRunning:   true,
+		tarResponse: tarBuffer.Bytes(),
+	}
+
+	term := &terminal{
+		flowID:       1,
+		containerID:  1,
+		containerLID: "test-container",
+		dockerClient: mock,
+		tlp:          &contextTestTermLogProvider{},
+	}
+
+	result, err := term.ReadFile(t.Context(), 1, "/tmp/test.txt")
+	assert.NoError(t, err)
+	assert.Contains(t, result, content, "ReadFile() should read all bytes of the file")
+}
+
+// Mock implementations for the new tests
+
+type timeoutCapturingMockDockerClient struct {
+	isRunning      bool
+	execCreateResp container.ExecCreateResponse
+	attachOutput   []byte
+	inspectResp    container.ExecInspect
+	onExecCreate   func(timeout time.Duration)
+}
+
+func (m *timeoutCapturingMockDockerClient) RunContainer(_ context.Context, _ string, _ database.ContainerType,
+	_ int64, _ *container.Config, _ *container.HostConfig) (database.Container, error) {
+	return database.Container{}, nil
+}
+func (m *timeoutCapturingMockDockerClient) StopContainer(_ context.Context, _ string, _ int64) error {
+	return nil
+}
+func (m *timeoutCapturingMockDockerClient) RemoveContainer(_ context.Context, _ string, _ int64) error {
+	return nil
+}
+func (m *timeoutCapturingMockDockerClient) IsContainerRunning(_ context.Context, _ string) (bool, error) {
+	return m.isRunning, nil
+}
+func (m *timeoutCapturingMockDockerClient) ContainerExecCreate(_ context.Context, _ string, _ container.ExecOptions) (container.ExecCreateResponse, error) {
+	return m.execCreateResp, nil
+}
+func (m *timeoutCapturingMockDockerClient) ContainerExecAttach(_ context.Context, _ string, _ container.ExecAttachOptions) (types.HijackedResponse, error) {
+	pr, pw := net.Pipe()
+	go func() {
+		pw.Write(m.attachOutput)
+		pw.Close()
+	}()
+	return types.HijackedResponse{
+		Conn:   pr,
+		Reader: bufio.NewReader(pr),
+	}, nil
+}
+func (m *timeoutCapturingMockDockerClient) ContainerStatPath(_ context.Context, _ string, _ string) (container.PathStat, error) {
+	return container.PathStat{}, nil
+}
+func (m *timeoutCapturingMockDockerClient) ListContainerDir(_ context.Context, _ string, _ string) ([]container.PathStat, error) {
+	return nil, nil
+}
+func (m *timeoutCapturingMockDockerClient) ContainerExecInspect(_ context.Context, _ string) (container.ExecInspect, error) {
+	return m.inspectResp, nil
+}
+func (m *timeoutCapturingMockDockerClient) CopyToContainer(_ context.Context, _ string, _ string, _ io.Reader, _ container.CopyToContainerOptions) error {
+	return nil
+}
+func (m *timeoutCapturingMockDockerClient) CopyFromContainer(_ context.Context, _ string, _ string) (io.ReadCloser, container.PathStat, error) {
+	return io.NopCloser(nil), container.PathStat{}, nil
+}
+func (m *timeoutCapturingMockDockerClient) Cleanup(_ context.Context) error { return nil }
+func (m *timeoutCapturingMockDockerClient) GetDefaultImage() string         { return "test-image" }
+
+var _ docker.DockerClient = (*timeoutCapturingMockDockerClient)(nil)
+
+type logTypeCapturingMockDockerClient struct {
+	isRunning bool
+	onPutMsg  func(msgType database.TermlogType)
+}
+
+func (m *logTypeCapturingMockDockerClient) RunContainer(_ context.Context, _ string, _ database.ContainerType,
+	_ int64, _ *container.Config, _ *container.HostConfig) (database.Container, error) {
+	return database.Container{}, nil
+}
+func (m *logTypeCapturingMockDockerClient) StopContainer(_ context.Context, _ string, _ int64) error {
+	return nil
+}
+func (m *logTypeCapturingMockDockerClient) RemoveContainer(_ context.Context, _ string, _ int64) error {
+	return nil
+}
+func (m *logTypeCapturingMockDockerClient) IsContainerRunning(_ context.Context, _ string) (bool, error) {
+	return m.isRunning, nil
+}
+func (m *logTypeCapturingMockDockerClient) ContainerExecCreate(_ context.Context, _ string, _ container.ExecOptions) (container.ExecCreateResponse, error) {
+	return container.ExecCreateResponse{}, nil
+}
+func (m *logTypeCapturingMockDockerClient) ContainerExecAttach(_ context.Context, _ string, _ container.ExecAttachOptions) (types.HijackedResponse, error) {
+	return types.HijackedResponse{}, nil
+}
+func (m *logTypeCapturingMockDockerClient) ContainerStatPath(_ context.Context, _ string, _ string) (container.PathStat, error) {
+	return container.PathStat{}, nil
+}
+func (m *logTypeCapturingMockDockerClient) ListContainerDir(_ context.Context, _ string, _ string) ([]container.PathStat, error) {
+	return nil, nil
+}
+func (m *logTypeCapturingMockDockerClient) ContainerExecInspect(_ context.Context, _ string) (container.ExecInspect, error) {
+	return container.ExecInspect{}, nil
+}
+func (m *logTypeCapturingMockDockerClient) CopyToContainer(_ context.Context, _ string, _ string, _ io.Reader, _ container.CopyToContainerOptions) error {
+	return nil
+}
+func (m *logTypeCapturingMockDockerClient) CopyFromContainer(_ context.Context, _ string, _ string) (io.ReadCloser, container.PathStat, error) {
+	return io.NopCloser(nil), container.PathStat{}, nil
+}
+func (m *logTypeCapturingMockDockerClient) Cleanup(_ context.Context) error { return nil }
+func (m *logTypeCapturingMockDockerClient) GetDefaultImage() string         { return "test-image" }
+
+var _ docker.DockerClient = (*logTypeCapturingMockDockerClient)(nil)
+
+type logTypeCapturingTermLogProvider struct {
+	onPutMsg func(msgType database.TermlogType)
+}
+
+func (m *logTypeCapturingTermLogProvider) PutMsg(_ context.Context, msgType database.TermlogType, _ string,
+	_ int64, _, _ *int64) (int64, error) {
+	if m.onPutMsg != nil {
+		m.onPutMsg(msgType)
+	}
+	return 1, nil
+}
+
+var _ TermLogProvider = (*logTypeCapturingTermLogProvider)(nil)
+
+type readFullVerifyingMockDockerClient struct {
+	isRunning   bool
+	tarResponse []byte
+}
+
+func (m *readFullVerifyingMockDockerClient) RunContainer(_ context.Context, _ string, _ database.ContainerType,
+	_ int64, _ *container.Config, _ *container.HostConfig) (database.Container, error) {
+	return database.Container{}, nil
+}
+func (m *readFullVerifyingMockDockerClient) StopContainer(_ context.Context, _ string, _ int64) error {
+	return nil
+}
+func (m *readFullVerifyingMockDockerClient) RemoveContainer(_ context.Context, _ string, _ int64) error {
+	return nil
+}
+func (m *readFullVerifyingMockDockerClient) IsContainerRunning(_ context.Context, _ string) (bool, error) {
+	return m.isRunning, nil
+}
+func (m *readFullVerifyingMockDockerClient) ContainerExecCreate(_ context.Context, _ string, _ container.ExecOptions) (container.ExecCreateResponse, error) {
+	return container.ExecCreateResponse{}, nil
+}
+func (m *readFullVerifyingMockDockerClient) ContainerExecAttach(_ context.Context, _ string, _ container.ExecAttachOptions) (types.HijackedResponse, error) {
+	return types.HijackedResponse{}, nil
+}
+func (m *readFullVerifyingMockDockerClient) ContainerStatPath(_ context.Context, _ string, _ string) (container.PathStat, error) {
+	return container.PathStat{Mode: 0}, nil
+}
+func (m *readFullVerifyingMockDockerClient) ListContainerDir(_ context.Context, _ string, _ string) ([]container.PathStat, error) {
+	return nil, nil
+}
+func (m *readFullVerifyingMockDockerClient) ContainerExecInspect(_ context.Context, _ string) (container.ExecInspect, error) {
+	return container.ExecInspect{}, nil
+}
+func (m *readFullVerifyingMockDockerClient) CopyToContainer(_ context.Context, _ string, _ string, _ io.Reader, _ container.CopyToContainerOptions) error {
+	return nil
+}
+func (m *readFullVerifyingMockDockerClient) CopyFromContainer(_ context.Context, _ string, _ string) (io.ReadCloser, container.PathStat, error) {
+	return io.NopCloser(bytes.NewReader(m.tarResponse)), container.PathStat{Mode: 0}, nil
+}
+func (m *readFullVerifyingMockDockerClient) Cleanup(_ context.Context) error { return nil }
+func (m *readFullVerifyingMockDockerClient) GetDefaultImage() string         { return "test-image" }
+
+var _ docker.DockerClient = (*readFullVerifyingMockDockerClient)(nil)

@@ -132,9 +132,6 @@ func (t *terminal) Handle(ctx context.Context, name string, args json.RawMessage
 			return "", fmt.Errorf("failed to unmarshal terminal action: %w", err)
 		}
 		timeout := t.normalizeExecTimeout(time.Duration(action.Timeout) * time.Second)
-		if timeout > 0 {
-			timeout += defaultExtraExecTimeout
-		}
 		result, err := t.ExecCommand(ctx, action.Cwd, action.Input, action.Detach.Bool(), timeout)
 		return t.wrapCommandResult(ctx, args, name, result, err)
 	case FileToolName:
@@ -367,8 +364,8 @@ func (t *terminal) ReadFile(ctx context.Context, flowID int64, path string) (str
 		}
 
 		var fileContent = make([]byte, tarHeader.Size)
-		_, err = tarReader.Read(fileContent)
-		if err != nil && err != io.EOF {
+		_, err = io.ReadFull(tarReader, fileContent)
+		if err != nil {
 			return "", fmt.Errorf("failed to read file '%s' content: %w", tarHeader.Name, err)
 		}
 		buffer.Write(fileContent)
@@ -437,7 +434,7 @@ func (t *terminal) WriteFile(ctx context.Context, flowID int64, content string, 
 	// Format success message with styling
 	successMsg := fmt.Sprintf("File successfully saved to %s", path)
 	styledMsg := fmt.Sprintf("%s%s%s%s", ansiColorSystemMsg, successMsg, ansiColorReset, ansiLineTerminator)
-	_, err = t.tlp.PutMsg(ctx, database.TermlogTypeStdin, styledMsg, t.containerID, t.taskID, t.subtaskID)
+	_, err = t.tlp.PutMsg(ctx, database.TermlogTypeStdout, styledMsg, t.containerID, t.taskID, t.subtaskID)
 	if err != nil {
 		return "", fmt.Errorf("failed to put terminal log (write file cmd): %w", err)
 	}
