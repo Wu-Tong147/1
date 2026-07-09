@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -547,43 +546,37 @@ func (s *FlowFileService) DownloadFlowFile(c *gin.Context) {
 	}
 
 	// Single directory → ZIP with paths relative to that directory (backward-compat).
-	// The archive is buffered so an explicit Content-Length can be set; this allows
-	// clients (including Swagger UI) to recognise and download the file correctly.
+	// Written directly to the response writer to avoid buffering the entire archive
+	// in memory, which can OOM the server for large directories.
 	if len(entries) == 1 && entries[0].info.IsDir() {
 		name := filepath.Base(entries[0].localPath)
-		var buf bytes.Buffer
-		if err := flowfiles.ZipDirectory(&buf, entries[0].localPath); err != nil {
+		c.Header("Content-Type", "application/zip")
+		c.Header("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{
+			"filename": name + ".zip",
+		}))
+		c.Status(http.StatusOK)
+		if err := flowfiles.ZipDirectory(c.Writer, entries[0].localPath); err != nil {
 			logger.FromContext(c).WithError(err).WithField("flow_id", flowID).Error("error creating ZIP archive")
-			response.Error(c, response.ErrInternal, err)
 			return
 		}
-		c.DataFromReader(http.StatusOK, int64(buf.Len()), "application/zip", &buf,
-			map[string]string{
-				"Content-Disposition": mime.FormatMediaType("attachment", map[string]string{
-					"filename": name + ".zip",
-				}),
-			})
 		return
 	}
 
 	// Multiple paths (any mix of files and directories) → ZIP with cache-relative paths.
-	// Buffered for the same reason as above.
+	// Streamed directly to the response writer for the same reason as above.
 	relPaths := make([]string, 0, len(entries))
 	for _, e := range entries {
 		relPaths = append(relPaths, filepath.ToSlash(e.reqPath))
 	}
-	var buf bytes.Buffer
-	if err := flowfiles.ZipRelativePaths(&buf, s.flowDataDir(flowID), relPaths); err != nil {
+	c.Header("Content-Type", "application/zip")
+	c.Header("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{
+		"filename": "download.zip",
+	}))
+	c.Status(http.StatusOK)
+	if err := flowfiles.ZipRelativePaths(c.Writer, s.flowDataDir(flowID), relPaths); err != nil {
 		logger.FromContext(c).WithError(err).WithField("flow_id", flowID).Error("error creating ZIP archive")
-		response.Error(c, response.ErrInternal, err)
 		return
 	}
-	c.DataFromReader(http.StatusOK, int64(buf.Len()), "application/zip", &buf,
-		map[string]string{
-			"Content-Disposition": mime.FormatMediaType("attachment", map[string]string{
-				"filename": "download.zip",
-			}),
-		})
 }
 
 // PullFlowFiles is a function to sync one or more paths from the container into the local cache
