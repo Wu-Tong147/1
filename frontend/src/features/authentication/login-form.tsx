@@ -1,6 +1,9 @@
+import type { TFunction } from 'i18next';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
@@ -16,25 +19,24 @@ import { useUser } from '@/providers/user-provider';
 
 import { PasswordChangeForm } from './password-change-form';
 
-const formSchema = z.object({
-    mail: z
-        .string()
-        .min(1, {
-            message: 'Login is required',
-        })
-        .refine(
-            (value) => z.string().email().safeParse(value).success || ['admin', 'demo'].includes(value.toLowerCase()),
-            {
-                message: 'Invalid login',
-            },
-        ),
-    password: z.string().min(1, {
-        message: 'Password is required',
-    }),
-});
-
-const errorMessage = 'Invalid login or password';
-const errorProviderMessage = 'Authentication failed';
+const createFormSchema = (t: TFunction) =>
+    z.object({
+        mail: z
+            .string()
+            .min(1, {
+                message: t('login.loginRequired'),
+            })
+            .refine(
+                (value) =>
+                    z.string().email().safeParse(value).success || ['admin', 'demo'].includes(value.toLowerCase()),
+                {
+                    message: t('login.invalidLogin'),
+                },
+            ),
+        password: z.string().min(1, {
+            message: t('login.passwordRequired'),
+        }),
+    });
 
 interface AuthProviderAction {
     icon: React.ReactNode;
@@ -42,25 +44,26 @@ interface AuthProviderAction {
     name: string;
 }
 
-const providerActions: AuthProviderAction[] = [
-    {
-        icon: <Google className="size-5" />,
-        id: 'google',
-        name: 'Continue with Google',
-    },
-    {
-        icon: <Github className="size-5" />,
-        id: 'github',
-        name: 'Continue with GitHub',
-    },
-];
-
 interface LoginFormProps {
     providers: string[]; // OAuth providers: ['google', 'github']
     returnUrl?: string;
 }
 
 function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
+    const { t } = useTranslation();
+    const formSchema = useMemo(() => createFormSchema(t), [t]);
+    const providerActions: AuthProviderAction[] = [
+        {
+            icon: <Google className="size-5" />,
+            id: 'google',
+            name: t('login.continueWithGoogle'),
+        },
+        {
+            icon: <Github className="size-5" />,
+            id: 'github',
+            name: t('login.continueWithGithub'),
+        },
+    ];
     const form = useForm<z.infer<typeof formSchema>>({
         defaultValues: {
             mail: '',
@@ -81,7 +84,7 @@ function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
             const result = await login(values);
 
             if (!result.success) {
-                setError(result.error || errorMessage);
+                setError(result.error || t('login.invalidLoginOrPassword'));
 
                 return;
             }
@@ -94,7 +97,7 @@ function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
 
             navigate(returnUrl);
         } catch {
-            setError(errorMessage);
+            setError(t('login.invalidLoginOrPassword'));
         }
     };
 
@@ -106,14 +109,14 @@ function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
             const result = await loginWithOAuth(provider);
 
             if (!result.success) {
-                setError(result.error || errorProviderMessage);
+                setError(result.error || t('login.authenticationFailed'));
 
                 return;
             }
 
             navigate(returnUrl);
         } catch (error) {
-            setError(error instanceof Error ? error.message : errorMessage);
+            setError(error instanceof Error ? error.message : t('login.invalidLoginOrPassword'));
         } finally {
             setIsSubmitting(false);
         }
@@ -155,10 +158,8 @@ function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
     if (shouldShowPasswordChange) {
         return (
             <div className="mx-auto flex w-[350px] flex-col gap-6">
-                <h1 className="text-center text-3xl font-bold">Update Password</h1>
-                <p className="text-muted-foreground text-center text-sm">
-                    You need to change your password before continuing.
-                </p>
+                <h1 className="text-center text-3xl font-bold">{t('login.passwordUpdateTitle')}</h1>
+                <p className="text-muted-foreground text-center text-sm">{t('login.passwordUpdateDescription')}</p>
                 <PasswordChangeForm
                     isModal={false}
                     onSkip={handleSkipPasswordChange}
@@ -201,7 +202,7 @@ function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
                                 <div className="w-full border-t border-gray-300" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="bg-background px-2">or</span>
+                                <span className="bg-background px-2">{t('login.or')}</span>
                             </div>
                         </div>
                     </>
@@ -213,12 +214,12 @@ function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
                         name="mail"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Login</FormLabel>
+                                <FormLabel>{t('login.loginLabel')}</FormLabel>
                                 <FormControl>
                                     <Input
                                         {...field}
                                         autoFocus
-                                        placeholder="Enter your email"
+                                        placeholder={t('login.emailPlaceholder')}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -231,11 +232,11 @@ function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
                         name="password"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Password</FormLabel>
+                                <FormLabel>{t('login.passwordLabel')}</FormLabel>
                                 <FormControl>
                                     <Input
                                         {...field}
-                                        placeholder="Enter your password"
+                                        placeholder={t('login.passwordPlaceholder')}
                                         type="password"
                                     />
                                 </FormControl>
@@ -245,7 +246,7 @@ function LoginForm({ providers, returnUrl = '/flows/new' }: LoginFormProps) {
                     />
 
                     <FormSubmitButton className="w-full">
-                        <span>Sign in</span>
+                        <span>{t('login.signIn')}</span>
                     </FormSubmitButton>
 
                     {error && <FormMessage>{error}</FormMessage>}
