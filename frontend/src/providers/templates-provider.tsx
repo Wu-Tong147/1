@@ -10,6 +10,7 @@ import {
     useFlowTemplateUpdatedSubscription,
     useUpdateFlowTemplateMutation,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { Log } from '@/lib/log';
 import { useUser } from '@/providers/user-provider';
 
@@ -95,8 +96,8 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
                     },
                 });
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Failed to create template';
-                toast.error('Failed to create template', {
+                const errorMessage = error instanceof Error ? error.message : uiT('Failed to create template');
+                toast.error(uiT('Failed to create template'), {
                     description: errorMessage,
                 });
                 Log.error('Error creating template:', error);
@@ -119,8 +120,8 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
                     },
                 });
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Failed to update template';
-                toast.error('Failed to update template', {
+                const errorMessage = error instanceof Error ? error.message : uiT('Failed to update template');
+                toast.error(uiT('Failed to update template'), {
                     description: errorMessage,
                 });
                 Log.error('Error updating template:', error);
@@ -139,8 +140,8 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
                     },
                 });
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Failed to delete template';
-                toast.error('Failed to delete template', {
+                const errorMessage = error instanceof Error ? error.message : uiT('Failed to delete template');
+                toast.error(uiT('Failed to delete template'), {
                     description: errorMessage,
                 });
                 Log.error('Error deleting template:', error);

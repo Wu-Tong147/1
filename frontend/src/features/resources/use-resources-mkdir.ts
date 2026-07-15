@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { api, getApiErrorMessage } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 
 import { RESOURCES_MKDIR_API_PATH } from './resources-constants';
 
@@ -36,13 +37,13 @@ export function useResourcesMkdir(): UseResourcesMkdirResult {
         try {
             await api.post<void, MkdirRequestBody>(RESOURCES_MKDIR_API_PATH, { path: path.trim() });
 
-            toast.success('Directory created', { description: `Created at /${path.trim()}` });
+            toast.success(uiT('Directory created'), { description: `Created at /${path.trim()}` });
 
             return true;
         } catch (error) {
-            const description = getApiErrorMessage(error, 'Failed to create directory');
+            const description = getApiErrorMessage(error, uiT('Failed to create directory'));
 
-            toast.error('Create directory failed', { description });
+            toast.error(uiT('Create directory failed'), { description });
 
             return false;
         } finally {

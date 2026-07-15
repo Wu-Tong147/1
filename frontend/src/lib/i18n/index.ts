@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import enUS from './en-US';
+import { enUSUI, zhCNUI } from './ui';
 import zhCN from './zh-CN';
 
 export const DEFAULT_LANGUAGE = 'en-US';
@@ -34,15 +35,17 @@ const applyDocumentLanguage = (language: string) => {
 };
 
 void i18n.use(initReactI18next).init({
+    defaultNS: 'translation',
     fallbackLng: DEFAULT_LANGUAGE,
     initImmediate: false,
     interpolation: {
         escapeValue: false,
     },
     lng: getInitialLanguage(),
+    ns: ['translation', 'ui'],
     resources: {
-        'en-US': { translation: enUS },
-        'zh-CN': { translation: zhCN },
+        'en-US': { translation: enUS, ui: enUSUI },
+        'zh-CN': { translation: zhCN, ui: zhCNUI },
     },
     supportedLngs: [...SUPPORTED_LANGUAGES],
 });
@@ -60,5 +63,8 @@ i18n.on('languageChanged', (language) => {
         // The language still changes for the current session when storage is unavailable.
     }
 });
+
+export const uiT = (text: string, values?: Record<string, unknown>): string =>
+    i18n.t(text, { defaultValue: text, ns: 'ui', ...values });
 
 export default i18n;

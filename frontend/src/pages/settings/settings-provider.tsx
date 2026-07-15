@@ -47,6 +47,7 @@ import {
     useTestProviderMutation,
     useUpdateProviderMutation,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 interface BaseFieldProps extends ControllerProps {
@@ -473,7 +474,7 @@ const agentConfigSchema = z
             (value) => (value === '' || value === undefined ? null : value),
             z.number().nullable().optional(),
         ),
-        model: z.preprocess((value) => value || '', z.string().min(1, 'Model is required')),
+        model: z.preprocess((value) => value || '', z.string().min(1, uiT('Model is required'))),
         presencePenalty: z.preprocess(
             (value) => (value === '' || value === undefined ? null : value),
             z.number().nullable().optional(),
@@ -535,9 +536,9 @@ const formSchema = z.object({
     agents: z.record(z.string(), agentConfigSchema).optional(),
     name: z.preprocess(
         (value) => value || '',
-        z.string().min(1, 'Provider name is required').max(50, 'Maximum 50 characters allowed'),
+        z.string().min(1, uiT('Provider name is required')).max(50, uiT('Maximum 50 characters allowed')),
     ),
-    type: z.preprocess((value) => value || '', z.string().min(1, 'Provider type is required')),
+    type: z.preprocess((value) => value || '', z.string().min(1, uiT('Provider type is required'))),
 });
 
 type FormAgents = FormData['agents'];
@@ -687,7 +688,7 @@ function TestResultsDialog({ handleOpenChange, isOpen, results }: TestResultsDia
         >
             <DialogContent className="flex max-h-[80vh] max-w-4xl flex-col">
                 <DialogHeader className="shrink-0">
-                    <DialogTitle>Provider Test Results</DialogTitle>
+                    <DialogTitle>{uiT('Provider Test Results')}</DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-1 flex-col gap-6 overflow-y-auto">
                     <Accordion
@@ -745,19 +746,19 @@ function TestResultsDialog({ handleOpenChange, isOpen, results }: TestResultsDia
                                                         {test.result === true
                                                             ? 'Success'
                                                             : test.result === false
-                                                              ? 'Failed'
-                                                              : 'Unknown'}
+                                                              ? uiT('Failed')
+                                                              : uiT('Unknown')}
                                                     </div>
                                                     {test.error && (
                                                         <div className="mt-2 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700">
-                                                            <strong>Error:</strong> {test.error}
+                                                            <strong>{uiT('Error:')}</strong> {test.error}
                                                         </div>
                                                     )}
                                                 </div>
                                             ))}
                                             {tests.length === 0 && (
                                                 <div className="text-muted-foreground py-4 text-center">
-                                                    No tests available for this agent
+                                                    {uiT('No tests available for this agent')}
                                                 </div>
                                             )}
                                         </div>
@@ -1086,7 +1087,7 @@ function SettingsProvider() {
             navigate('/settings/providers');
         } catch (error) {
             console.error('Submit error:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An error occurred while saving');
+            setSubmitError(error instanceof Error ? error.message : uiT('An error occurred while saving'));
         }
     };
 
@@ -1114,7 +1115,7 @@ function SettingsProvider() {
             navigate('/settings/providers');
         } catch (error) {
             console.error('Delete error:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An error occurred while deleting');
+            setSubmitError(error instanceof Error ? error.message : uiT('An error occurred while deleting'));
         }
     };
 
@@ -1191,7 +1192,7 @@ function SettingsProvider() {
             setIsTestDialogOpen(true);
         } catch (error) {
             console.error('Test error:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An error occurred while testing');
+            setSubmitError(error instanceof Error ? error.message : uiT('An error occurred while testing'));
         }
     };
 
@@ -1267,7 +1268,7 @@ function SettingsProvider() {
             return;
         } catch (error) {
             console.error('Test error:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An error occurred while testing');
+            setSubmitError(error instanceof Error ? error.message : uiT('An error occurred while testing'));
             setCurrentAgentKey(null);
         }
     };
@@ -1306,9 +1307,9 @@ function SettingsProvider() {
     if (loading) {
         return (
             <StatusCard
-                description="Please wait while we fetch provider configuration"
+                description={uiT('Please wait while we fetch provider configuration')}
                 icon={<Loader2 className="text-muted-foreground size-16 animate-spin" />}
-                title="Loading provider data..."
+                title={uiT('Loading provider data...')}
             />
         );
     }
@@ -1317,7 +1318,7 @@ function SettingsProvider() {
         return (
             <Alert variant="destructive">
                 <AlertCircle className="size-4" />
-                <AlertTitle>Error loading provider data</AlertTitle>
+                <AlertTitle>{uiT('Error loading provider data')}</AlertTitle>
                 <AlertDescription>{error.message}</AlertDescription>
             </Alert>
         );
@@ -1335,13 +1336,13 @@ function SettingsProvider() {
                 <div className="flex flex-col gap-2">
                     <h2 className="flex items-center gap-2 text-lg font-semibold">
                         <Cpu className="text-muted-foreground size-5" />
-                        {isNew ? 'New Provider' : 'Provider Settings'}
+                        {isNew ? uiT('New Provider') : uiT('Provider Settings')}
                     </h2>
 
                     <div className="text-muted-foreground">
                         {isNew
-                            ? 'Configure a new language model provider'
-                            : 'Update provider settings and configuration'}
+                            ? uiT('Configure a new language model provider')
+                            : uiT('Update provider settings and configuration')}
                     </div>
                 </div>
 
@@ -1355,7 +1356,7 @@ function SettingsProvider() {
                         {mutationError && (
                             <Alert variant="destructive">
                                 <AlertCircle className="size-4" />
-                                <AlertTitle>Error</AlertTitle>
+                                <AlertTitle>{uiT('Error')}</AlertTitle>
                                 <AlertDescription>
                                     {mutationError instanceof Error ? (
                                         mutationError.message
@@ -1370,28 +1371,30 @@ function SettingsProvider() {
                         <FormComboboxItem
                             allowCustom={false}
                             control={control}
-                            description="The type of language model provider"
+                            description={uiT('The type of language model provider')}
                             disabled={isLoading || !!selectedType}
-                            label="Type"
+                            label={uiT('Type')}
                             name="type"
                             options={providers}
-                            placeholder="Select provider"
+                            placeholder={uiT('Select provider')}
                         />
 
                         <FormInputStringItem
                             control={control}
-                            description="A unique name for your provider configuration"
+                            description={uiT('A unique name for your provider configuration')}
                             disabled={isLoading}
-                            label="Name"
+                            label={uiT('Name')}
                             name="name"
-                            placeholder="Enter provider name"
+                            placeholder={uiT('Enter provider name')}
                         />
 
                         {/* Agents Configuration Section */}
                         <div className="flex flex-col gap-4">
                             <div>
-                                <h3 className="text-lg font-medium">Agent Configurations</h3>
-                                <p className="text-muted-foreground text-sm">Configure settings for each agent type</p>
+                                <h3 className="text-lg font-medium">{uiT('Agent Configurations')}</h3>
+                                <p className="text-muted-foreground text-sm">
+                                    {uiT('Configure settings for each agent type')}
+                                </p>
                             </div>
 
                             <Accordion
@@ -1428,8 +1431,8 @@ function SettingsProvider() {
                                                     )}
                                                     <span className="no-underline! hover:no-underline!">
                                                         {isAgentTestLoading && currentAgentKey === agentKey
-                                                            ? 'Testing...'
-                                                            : 'Test'}
+                                                            ? uiT('Testing...')
+                                                            : uiT('Test')}
                                                     </span>
                                                 </span>
                                             </div>
@@ -1440,7 +1443,7 @@ function SettingsProvider() {
                                                 <FormModelComboboxItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Model"
+                                                    label={uiT('Model')}
                                                     name={`agents.${agentKey}.model`}
                                                     onOptionSelect={(option) => {
                                                         {
@@ -1467,14 +1470,14 @@ function SettingsProvider() {
                                                         );
                                                     }}
                                                     options={availableModels}
-                                                    placeholder="Select or enter model name"
+                                                    placeholder={uiT('Select or enter model name')}
                                                 />
 
                                                 {/* Temperature field */}
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Temperature"
+                                                    label={uiT('Temperature')}
                                                     max="2"
                                                     min="0"
                                                     name={`agents.${agentKey}.temperature`}
@@ -1486,7 +1489,7 @@ function SettingsProvider() {
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Max Tokens"
+                                                    label={uiT('Max Tokens')}
                                                     min="1"
                                                     name={`agents.${agentKey}.maxTokens`}
                                                     placeholder="1000"
@@ -1497,7 +1500,7 @@ function SettingsProvider() {
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Top P"
+                                                    label={uiT('Top P')}
                                                     max="1"
                                                     min="0"
                                                     name={`agents.${agentKey}.topP`}
@@ -1509,7 +1512,7 @@ function SettingsProvider() {
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Top K"
+                                                    label={uiT('Top K')}
                                                     min="1"
                                                     name={`agents.${agentKey}.topK`}
                                                     placeholder="40"
@@ -1520,7 +1523,7 @@ function SettingsProvider() {
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Min Length"
+                                                    label={uiT('Min Length')}
                                                     min="0"
                                                     name={`agents.${agentKey}.minLength`}
                                                     placeholder="0"
@@ -1531,7 +1534,7 @@ function SettingsProvider() {
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Max Length"
+                                                    label={uiT('Max Length')}
                                                     min="1"
                                                     name={`agents.${agentKey}.maxLength`}
                                                     placeholder="2000"
@@ -1542,7 +1545,7 @@ function SettingsProvider() {
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Repetition Penalty"
+                                                    label={uiT('Repetition Penalty')}
                                                     max="2"
                                                     min="0"
                                                     name={`agents.${agentKey}.repetitionPenalty`}
@@ -1554,7 +1557,7 @@ function SettingsProvider() {
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Frequency Penalty"
+                                                    label={uiT('Frequency Penalty')}
                                                     max="2"
                                                     min="0"
                                                     name={`agents.${agentKey}.frequencyPenalty`}
@@ -1566,7 +1569,7 @@ function SettingsProvider() {
                                                 <FormInputNumberItem
                                                     control={control}
                                                     disabled={isLoading}
-                                                    label="Presence Penalty"
+                                                    label={uiT('Presence Penalty')}
                                                     max="2"
                                                     min="0"
                                                     name={`agents.${agentKey}.presencePenalty`}
@@ -1578,7 +1581,9 @@ function SettingsProvider() {
                                             {/* Reasoning Configuration */}
                                             <div className="col-span-full p-px">
                                                 <div className="mt-6 flex flex-col gap-4">
-                                                    <h4 className="text-sm font-medium">Reasoning Configuration</h4>
+                                                    <h4 className="text-sm font-medium">
+                                                        {uiT('Reasoning Configuration')}
+                                                    </h4>
                                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                         {/* Reasoning Effort field */}
                                                         <FormField
@@ -1586,7 +1591,7 @@ function SettingsProvider() {
                                                             name={`agents.${agentKey}.reasoning.effort`}
                                                             render={({ field }) => (
                                                                 <FormItem>
-                                                                    <FormLabel>Reasoning Effort</FormLabel>
+                                                                    <FormLabel>{uiT('Reasoning Effort')}</FormLabel>
                                                                     <Select
                                                                         defaultValue={field.value ?? 'none'}
                                                                         disabled={isLoading}
@@ -1598,21 +1603,25 @@ function SettingsProvider() {
                                                                     >
                                                                         <FormControl>
                                                                             <SelectTrigger>
-                                                                                <SelectValue placeholder="Select effort level (optional)" />
+                                                                                <SelectValue
+                                                                                    placeholder={uiT(
+                                                                                        'Select effort level (optional)',
+                                                                                    )}
+                                                                                />
                                                                             </SelectTrigger>
                                                                         </FormControl>
                                                                         <SelectContent>
                                                                             <SelectItem value="none">
-                                                                                Not selected
+                                                                                {uiT('Not selected')}
                                                                             </SelectItem>
                                                                             <SelectItem value={ReasoningEffort.Low}>
-                                                                                Low
+                                                                                {uiT('Low')}
                                                                             </SelectItem>
                                                                             <SelectItem value={ReasoningEffort.Medium}>
-                                                                                Medium
+                                                                                {uiT('Medium')}
                                                                             </SelectItem>
                                                                             <SelectItem value={ReasoningEffort.High}>
-                                                                                High
+                                                                                {uiT('High')}
                                                                             </SelectItem>
                                                                         </SelectContent>
                                                                     </Select>
@@ -1638,14 +1647,16 @@ function SettingsProvider() {
                                             {/* Price Configuration */}
                                             <div className="col-span-full p-px">
                                                 <div className="mt-6 flex flex-col gap-4">
-                                                    <h4 className="text-sm font-medium">Price Configuration</h4>
+                                                    <h4 className="text-sm font-medium">
+                                                        {uiT('Price Configuration')}
+                                                    </h4>
                                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                         {/* Price Input field */}
                                                         <FormInputNumberItem
                                                             control={control}
                                                             description="Price per 1M input tokens"
                                                             disabled={isLoading}
-                                                            label="Input Price"
+                                                            label={uiT('Input Price')}
                                                             min="0"
                                                             name={`agents.${agentKey}.price.input`}
                                                             placeholder="0.001"
@@ -1657,7 +1668,7 @@ function SettingsProvider() {
                                                             control={control}
                                                             description="Price per 1M output tokens"
                                                             disabled={isLoading}
-                                                            label="Output Price"
+                                                            label={uiT('Output Price')}
                                                             min="0"
                                                             name={`agents.${agentKey}.price.output`}
                                                             placeholder="0.002"
@@ -1669,7 +1680,7 @@ function SettingsProvider() {
                                                             control={control}
                                                             description="Price per 1M cached read tokens"
                                                             disabled={isLoading}
-                                                            label="Cache Read Price"
+                                                            label={uiT('Cache Read Price')}
                                                             min="0"
                                                             name={`agents.${agentKey}.price.cacheRead`}
                                                             placeholder="0.0001"
@@ -1681,7 +1692,7 @@ function SettingsProvider() {
                                                             control={control}
                                                             description="Price per 1M cache write tokens"
                                                             disabled={isLoading}
-                                                            label="Cache Write Price"
+                                                            label={uiT('Cache Write Price')}
                                                             min="0"
                                                             name={`agents.${agentKey}.price.cacheWrite`}
                                                             placeholder="0.00015"
@@ -1715,7 +1726,7 @@ function SettingsProvider() {
                             ) : (
                                 <Trash2 className="size-4" />
                             )}
-                            {isDeleteLoading ? 'Deleting...' : 'Delete'}
+                            {isDeleteLoading ? uiT('Deleting...') : uiT('Delete')}
                         </Button>
                     )}
                     <Button
@@ -1725,7 +1736,7 @@ function SettingsProvider() {
                         variant="outline"
                     >
                         {isTestLoading ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
-                        {isTestLoading ? 'Testing...' : 'Test'}
+                        {isTestLoading ? uiT('Testing...') : uiT('Test')}
                     </Button>
                 </div>
 
@@ -1736,7 +1747,7 @@ function SettingsProvider() {
                         type="button"
                         variant="outline"
                     >
-                        Cancel
+                        {uiT('Cancel')}
                     </Button>
                     <FormSubmitButton
                         form="provider-form"
@@ -1744,7 +1755,7 @@ function SettingsProvider() {
                         loading={isLoading}
                         variant="secondary"
                     >
-                        {isLoading ? 'Saving...' : isNew ? 'Create Provider' : 'Update Provider'}
+                        {isLoading ? uiT('Saving...') : isNew ? uiT('Create Provider') : uiT('Update Provider')}
                     </FormSubmitButton>
                 </div>
             </div>
@@ -1756,8 +1767,8 @@ function SettingsProvider() {
             />
 
             <ConfirmationDialog
-                cancelText="Cancel"
-                confirmText="Delete"
+                cancelText={uiT('Cancel')}
+                confirmText={uiT('Delete')}
                 handleConfirm={handleConfirmDelete}
                 handleOpenChange={setIsDeleteDialogOpen}
                 isOpen={isDeleteDialogOpen}
@@ -1766,15 +1777,15 @@ function SettingsProvider() {
             />
 
             <ConfirmationDialog
-                cancelText="Stay"
+                cancelText={uiT('Stay')}
                 confirmIcon={undefined}
-                confirmText="Leave"
+                confirmText={uiT('Leave')}
                 confirmVariant="destructive"
-                description="You have unsaved changes. Are you sure you want to leave without saving?"
+                description={uiT('You have unsaved changes. Are you sure you want to leave without saving?')}
                 handleConfirm={handleConfirmLeave}
                 handleOpenChange={handleLeaveDialogOpenChange}
                 isOpen={isLeaveDialogOpen}
-                title="Discard changes?"
+                title={uiT('Discard changes?')}
             />
         </>
     );

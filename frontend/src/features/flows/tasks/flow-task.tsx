@@ -6,6 +6,7 @@ import Markdown from '@/components/shared/markdown';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { StatusType } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 
 import FlowSubtask from './flow-subtask';
 import FlowTaskStatusIcon from './flow-task-status-icon';
@@ -112,7 +113,7 @@ function FlowTask({ searchValue = '', task }: FlowTaskProps) {
                                 className="cursor-pointer"
                                 onClick={() => setIsDetailsVisible(!isDetailsVisible)}
                             >
-                                {isDetailsVisible ? 'Hide details' : 'Show details'}
+                                {isDetailsVisible ? uiT('Hide details') : uiT('Show details')}
                             </div>
                             {isDetailsVisible && (
                                 <Card className="mt-4">
@@ -143,7 +144,9 @@ function FlowTask({ searchValue = '', task }: FlowTaskProps) {
                     ))}
                 </div>
             ) : (
-                <div className="text-muted-foreground mt-2 ml-6 text-xs">Waiting for subtasks to be created...</div>
+                <div className="text-muted-foreground mt-2 ml-6 text-xs">
+                    {uiT('Waiting for subtasks to be created...')}
+                </div>
             )}
         </div>
     );

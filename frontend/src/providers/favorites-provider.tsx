@@ -16,6 +16,7 @@ import {
     useSettingsUserQuery,
     useSettingsUserUpdatedSubscription,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { Log } from '@/lib/log';
 import { useUser } from '@/providers/user-provider';
 
@@ -149,8 +150,8 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
                         variables: { flowId: id },
                     });
                 } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : 'Failed to add favorite';
-                    toast.error('Failed to add to favorites', {
+                    const errorMessage = error instanceof Error ? error.message : uiT('Failed to add favorite');
+                    toast.error(uiT('Failed to add to favorites'), {
                         description: errorMessage,
                     });
                     Log.error('Error adding favorite flow:', error);
@@ -173,8 +174,8 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
                         variables: { flowId: id },
                     });
                 } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : 'Failed to remove favorite';
-                    toast.error('Failed to remove from favorites', {
+                    const errorMessage = error instanceof Error ? error.message : uiT('Failed to remove favorite');
+                    toast.error(uiT('Failed to remove from favorites'), {
                         description: errorMessage,
                     });
                     Log.error('Error removing favorite flow:', error);

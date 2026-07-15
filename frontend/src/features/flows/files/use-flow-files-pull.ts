@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import type { OverwriteOutcome } from '@/components/shared/overwrite';
 
 import { api, getApiErrorMessage, getApiErrorStatusCode } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 
 import { CONTAINER_TARGET_DIRECTORY, FLOW_FILES_PULL_API_PATH } from './flow-files-constants';
 import { type FlowFilesResponse, pluralizeItems } from './flow-files-utils';
@@ -58,7 +59,7 @@ export function useFlowFilesPull({ flowId, onSuccess }: UseFlowFilesPullParams):
                         ? `Saved to local cache under ${CONTAINER_TARGET_DIRECTORY}`
                         : `Saved ${paths.length} ${pluralizeItems(paths.length)} to local cache under ${CONTAINER_TARGET_DIRECTORY}`;
 
-                toast.success('Pulled from container', { description });
+                toast.success(uiT('Pulled from container'), { description });
                 onSuccess();
 
                 return { kind: 'ok' };
@@ -69,9 +70,9 @@ export function useFlowFilesPull({ flowId, onSuccess }: UseFlowFilesPullParams):
                     return { kind: 'conflict' };
                 }
 
-                const description = getApiErrorMessage(error, 'Failed to pull from container');
+                const description = getApiErrorMessage(error, uiT('Failed to pull from container'));
 
-                toast.error('Pull failed', { description });
+                toast.error(uiT('Pull failed'), { description });
 
                 return { kind: 'error' };
             } finally {

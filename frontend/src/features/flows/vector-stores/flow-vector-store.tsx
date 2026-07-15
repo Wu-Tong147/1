@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import FlowAgentIcon from '@/features/flows/agents/flow-agent-icon';
 import { VectorStoreAction } from '@/graphql/types';
 import { copyMessageToClipboard } from '@/lib/clipboard';
+import { uiT } from '@/lib/i18n';
 import { formatDate } from '@/lib/utils/format';
 
 import FlowVectorStoreActionIcon from './flow-vector-store-action-icon';
@@ -21,36 +22,25 @@ const getDescription = (log: VectorStoreLogFragmentFragment) => {
         guide_type: guideType,
         tool_name: toolName,
     } = JSON.parse(filter) || {};
+    const parts: string[] = [];
 
-    let description = '';
-    const prefix = action === VectorStoreAction.Store ? 'Stored' : 'Retrieved';
-    const preposition = action === VectorStoreAction.Store ? 'in' : 'from';
-
-    if (docType) {
-        if (docType === 'memory') {
-            description += `${prefix} ${preposition} memory`;
-        } else {
-            description += `${prefix} ${docType}`;
-        }
+    if (docType === 'memory') {
+        parts.push(uiT(action === VectorStoreAction.Store ? 'Stored in memory' : 'Retrieved from memory'));
+    } else if (docType) {
+        parts.push(
+            uiT(action === VectorStoreAction.Store ? 'Stored {{docType}}' : 'Retrieved {{docType}}', { docType }),
+        );
     }
 
-    if (codeLang) {
-        description += `${description ? ' on' : 'On'} ${codeLang} language`;
-    }
+    if (codeLang) {parts.push(uiT('on {{language}} language', { language: codeLang }));}
 
-    if (toolName) {
-        description += `${description ? ' by' : 'By'} ${toolName} tool`;
-    }
+    if (toolName) {parts.push(uiT('by {{tool}} tool', { tool: toolName }));}
 
-    if (guideType) {
-        description += `${description ? ' about' : 'About'} ${guideType}`;
-    }
+    if (guideType) {parts.push(uiT('about {{guideType}}', { guideType }));}
 
-    if (answerType) {
-        description += `${description ? ' as' : 'As'} a ${answerType}`;
-    }
+    if (answerType) {parts.push(uiT('as a {{answerType}}', { answerType }));}
 
-    return description;
+    return parts.join(' ');
 };
 
 interface FlowVectorStoreProps {
@@ -134,7 +124,7 @@ function FlowVectorStore({ log, searchValue = '' }: FlowVectorStoreProps) {
                             className="cursor-pointer"
                             onClick={() => setIsDetailsVisible(!isDetailsVisible)}
                         >
-                            {isDetailsVisible ? 'Hide details' : 'Show details'}
+                            {isDetailsVisible ? uiT('Hide details') : uiT('Show details')}
                         </div>
                         {isDetailsVisible && (
                             <>
@@ -169,7 +159,7 @@ function FlowVectorStore({ log, searchValue = '' }: FlowVectorStoreProps) {
                             onClick={handleCopy}
                         />
                     </TooltipTrigger>
-                    <TooltipContent>Copy</TooltipContent>
+                    <TooltipContent>{uiT('Copy')}</TooltipContent>
                 </Tooltip>
                 <span className="text-muted-foreground/50">{formatDate(new Date(createdAt))}</span>
                 {taskId && (

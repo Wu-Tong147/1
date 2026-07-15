@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { Input } from '@/components/ui/input';
+import { uiT } from '@/lib/i18n';
 
 import { resourcesMkdirFormSchema, type ResourcesMkdirFormValues, useResourcesMkdir } from './use-resources-mkdir';
 
@@ -92,7 +93,7 @@ function ResourcesMkdirDialogForm({ defaultParentPath, onClose }: ResourcesMkdir
                         name="path"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Path</FormLabel>
+                                <FormLabel>{uiT('Path')}</FormLabel>
                                 <FormControl>
                                     <Input
                                         {...field}
@@ -117,9 +118,9 @@ function ResourcesMkdirDialogForm({ defaultParentPath, onClose }: ResourcesMkdir
                             type="button"
                             variant="outline"
                         >
-                            Cancel
+                            {uiT('Cancel')}
                         </Button>
-                        <FormSubmitButton icon={<FolderPlus />}>Create</FormSubmitButton>
+                        <FormSubmitButton icon={<FolderPlus />}>{uiT('Create')}</FormSubmitButton>
                     </div>
                 </form>
             </Form>

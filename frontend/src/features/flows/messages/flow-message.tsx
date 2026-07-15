@@ -8,6 +8,7 @@ import Terminal from '@/components/shared/terminal';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MessageLogType, ResultFormat } from '@/graphql/types';
 import { copyMessageToClipboard } from '@/lib/clipboard';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/utils/format';
 
@@ -165,7 +166,7 @@ function FlowMessage({ log, searchValue = '' }: FlowMessageProps) {
                             className="cursor-pointer"
                             onClick={toggleThinking}
                         >
-                            {isThinkingVisible ? 'Hide thinking' : 'Show thinking'}
+                            {isThinkingVisible ? uiT('Hide thinking') : uiT('Show thinking')}
                         </div>
                     </div>
                 )}
@@ -190,7 +191,7 @@ function FlowMessage({ log, searchValue = '' }: FlowMessageProps) {
                             className="cursor-pointer"
                             onClick={toggleDetails}
                         >
-                            {isDetailsVisible ? 'Hide details' : 'Show details'}
+                            {isDetailsVisible ? uiT('Hide details') : uiT('Show details')}
                         </div>
                         {renderDetailsContent()}
                     </div>
@@ -209,7 +210,7 @@ function FlowMessage({ log, searchValue = '' }: FlowMessageProps) {
                             onClick={handleCopy}
                         />
                     </TooltipTrigger>
-                    <TooltipContent>Copy</TooltipContent>
+                    <TooltipContent>{uiT('Copy')}</TooltipContent>
                 </Tooltip>
                 <span className="text-muted-foreground/50">{formatDate(new Date(createdAt))}</span>
                 <span className="text-muted-foreground/50">{log.id}</span>

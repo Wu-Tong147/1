@@ -3,6 +3,7 @@ import GithubSlugger from 'github-slugger';
 import type { FlowFragmentFragment, TaskFragmentFragment } from '@/graphql/types';
 
 import { StatusType } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { Log } from '@/lib/log';
 
 const getStatusEmoji = (status: StatusType): string => {
@@ -95,7 +96,7 @@ export const generateReport = (tasks: TaskFragmentFragment[], flow?: FlowFragmen
             return `# ${flowEmoji} ${flow.id}. ${flow.title}\n\nNo tasks available for this flow.`;
         }
 
-        return 'No tasks available for this flow.';
+        return uiT('No tasks available for this flow.');
     }
 
     const sortedTasks = [...tasks].sort((a, b) => +a.id - +b.id);

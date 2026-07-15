@@ -28,6 +28,7 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { uiT } from '@/lib/i18n';
 
 import { findPullConflicts } from './flow-files-conflicts';
 import { CONTAINER_DEFAULT_PATH, CONTAINER_PATH_PREFIX } from './flow-files-constants';
@@ -318,7 +319,7 @@ function FlowFilesPullDialogForm({ cachedFiles, flowId, onClose, onSuccess }: Fl
 
     const overwriteLabel = useMemo(() => {
         if (selectedPaths.size === 0) {
-            return 'Pull with overwrite';
+            return uiT('Pull with overwrite');
         }
 
         return `Pull ${selectedPaths.size} with overwrite`;
@@ -334,7 +335,7 @@ function FlowFilesPullDialogForm({ cachedFiles, flowId, onClose, onSuccess }: Fl
                 <EmptyMedia variant="icon">
                     <FolderOpen />
                 </EmptyMedia>
-                <EmptyTitle>Failed to list container</EmptyTitle>
+                <EmptyTitle>{uiT('Failed to list container')}</EmptyTitle>
                 <EmptyDescription>{listingError.message}</EmptyDescription>
             </EmptyHeader>
         </Empty>
@@ -344,9 +345,9 @@ function FlowFilesPullDialogForm({ cachedFiles, flowId, onClose, onSuccess }: Fl
                 <EmptyMedia variant="icon">
                     <FolderOpen />
                 </EmptyMedia>
-                <EmptyTitle>Directory is empty</EmptyTitle>
+                <EmptyTitle>{uiT('Directory is empty')}</EmptyTitle>
                 <EmptyDescription>
-                    Nothing to pull from <code>{currentPath}</code>.
+                    {uiT('Nothing to pull from')} <code>{currentPath}</code>.
                 </EmptyDescription>
             </EmptyHeader>
         </Empty>
@@ -358,18 +359,20 @@ function FlowFilesPullDialogForm({ cachedFiles, flowId, onClose, onSuccess }: Fl
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ArrowDownToLine className="size-4" />
-                        Pull from container
+                        {uiT('Pull from container')}
                     </DialogTitle>
                     <DialogDescription>
-                        Browse the running container and select files or directories to sync into the local cache under{' '}
-                        <code>container/</code>. Click the arrow on a folder row or double-click the row to drill in.
+                        {uiT(
+                            'Browse the running container and select files or directories to sync into the local cache under',
+                        )}{' '}
+                        <code>container/</code>. {uiT('Use the folder arrow or double-click a row to open it.')}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="flex flex-col gap-3">
                     <div className="flex items-end gap-2">
                         <div className="flex-1">
-                            <Label className="mb-1.5 block text-sm font-normal">Container path</Label>
+                            <Label className="mb-1.5 block text-sm font-normal">{uiT('Container path')}</Label>
                             <Autocomplete
                                 onCommit={navigateTo}
                                 onValueChange={setPathInputValue}
@@ -381,7 +384,7 @@ function FlowFilesPullDialogForm({ cachedFiles, flowId, onClose, onSuccess }: Fl
                                     placeholder="/work"
                                 />
                                 <AutocompleteContent>
-                                    <AutocompleteEmpty>No matching paths</AutocompleteEmpty>
+                                    <AutocompleteEmpty>{uiT('No matching paths')}</AutocompleteEmpty>
                                     <AutocompleteGroup>
                                         {pathSuggestions.map((suggestion) => (
                                             <AutocompleteItem
@@ -410,7 +413,7 @@ function FlowFilesPullDialogForm({ cachedFiles, flowId, onClose, onSuccess }: Fl
                                     </Button>
                                 </span>
                             </TooltipTrigger>
-                            <TooltipContent>Parent directory</TooltipContent>
+                            <TooltipContent>{uiT('Parent directory')}</TooltipContent>
                         </Tooltip>
 
                         <Tooltip>
@@ -427,7 +430,7 @@ function FlowFilesPullDialogForm({ cachedFiles, flowId, onClose, onSuccess }: Fl
                                     </Button>
                                 </span>
                             </TooltipTrigger>
-                            <TooltipContent>Refresh listing</TooltipContent>
+                            <TooltipContent>{uiT('Refresh listing')}</TooltipContent>
                         </Tooltip>
                     </div>
 
@@ -450,7 +453,7 @@ function FlowFilesPullDialogForm({ cachedFiles, flowId, onClose, onSuccess }: Fl
                         type="button"
                         variant="outline"
                     >
-                        Cancel
+                        {uiT('Cancel')}
                     </Button>
                     <OverwriteButtons
                         isDisabled={isPullDisabled}

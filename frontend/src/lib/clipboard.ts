@@ -2,6 +2,7 @@ import { Terminal as XTerminal } from '@xterm/xterm';
 import { toast } from 'sonner';
 
 import { ResultFormat } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 
 /**
  * Interface for message data that can be copied to clipboard
@@ -140,7 +141,7 @@ export const formatMessageForClipboard = async (messageData: CopyableMessage): P
     let content = '';
 
     if (thinking && thinking.trim()) {
-        content += `<details>\n<summary>Thinking</summary>\n\n${thinking.trim()}\n\n</details>\n\n`;
+        content += `<details>\n<summary>${uiT('Thinking')}</summary>\n\n${thinking.trim()}\n\n</details>\n\n`;
     }
 
     if (message && message.trim()) {
@@ -162,7 +163,7 @@ export const formatMessageForClipboard = async (messageData: CopyableMessage): P
             }
         }
 
-        content += `<details>\n<summary>Result</summary>\n\n${resultContent}\n\n</details>`;
+        content += `<details>\n<summary>${uiT('Result')}</summary>\n\n${resultContent}\n\n</details>`;
     }
 
     return content;
@@ -175,8 +176,8 @@ export const copyMessageToClipboard = async (messageData: CopyableMessage): Prom
     try {
         const content = await formatMessageForClipboard(messageData);
         await navigator.clipboard.writeText(content);
-        toast.success('Copied to clipboard');
+        toast.success(uiT('Copied to clipboard'));
     } catch {
-        toast.error('Failed to copy to clipboard');
+        toast.error(uiT('Failed to copy to clipboard'));
     }
 };

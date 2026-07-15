@@ -42,7 +42,7 @@ interface AutocompleteContextValue {
  *  <Autocomplete value={path} onValueChange={setPath} onCommit={navigateTo}>
  *      <AutocompleteInput placeholder="/work" />
  *      <AutocompleteContent>
- *          <AutocompleteEmpty>No matches</AutocompleteEmpty>
+ *          <AutocompleteEmpty>{uiT('No matches')}</AutocompleteEmpty>
  *          <AutocompleteGroup heading="Known paths">
  *              {paths.map((p) => (
  *                  <AutocompleteItem key={p} value={p}>{p}</AutocompleteItem>

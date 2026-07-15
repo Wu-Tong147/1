@@ -6,6 +6,7 @@ import type { ScreenshotFragmentFragment } from '@/graphql/types';
 
 import { buttonVariants } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/utils/format';
 import { baseUrl } from '@/models/api';
@@ -62,7 +63,7 @@ function FlowScreenshot({ screenshot }: FlowScreenshotProps) {
                                     <span className="truncate font-semibold">{screenshot.url}</span>
                                 </Link>
                             </TooltipTrigger>
-                            <TooltipContent>Source URL</TooltipContent>
+                            <TooltipContent>{uiT('Source URL')}</TooltipContent>
                         </Tooltip>
                     </div>
 

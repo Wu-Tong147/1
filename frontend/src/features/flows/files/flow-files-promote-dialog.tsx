@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { uiT } from '@/lib/i18n';
 import { useResources } from '@/providers/resources-provider';
 
 import { stripFlowRootPrefix } from './flow-files-utils';
@@ -184,8 +185,12 @@ function FlowFilesPromoteDialogForm({ files, flowId, onClose }: FlowFilesPromote
     });
 
     const isSubmitDisabled = !form.formState.isValid;
-    const titleText = isMulti ? `Save ${files.length} items as resources` : 'Save as resource';
-    const overwriteCtaLabel = isMulti ? `Save ${files.length} with overwrite` : 'Save with overwrite';
+    const titleText = isMulti
+        ? uiT('Save {{count}} items as resources', { count: files.length })
+        : uiT('Save as resource');
+    const overwriteCtaLabel = isMulti
+        ? uiT('Save {{count}} with overwrite', { count: files.length })
+        : uiT('Save with overwrite');
 
     return (
         <>
@@ -198,13 +203,14 @@ function FlowFilesPromoteDialogForm({ files, flowId, onClose }: FlowFilesPromote
                     <DialogDescription>
                         {isMulti ? (
                             <>
-                                Promote every selected entry from this flow into your global resource library so you can
-                                reuse them in other flows.
+                                {uiT(
+                                    'Promote every selected entry from this flow into your global resource library so you can reuse them in other flows.',
+                                )}
                             </>
                         ) : (
                             <>
-                                Promote <code>{files[0].path}</code> from this flow into your global resource library so
-                                you can reuse it in other flows.
+                                {uiT('Promote')} <code>{files[0].path}</code> from this flow into your global resource
+                                library so you can reuse it in other flows.
                             </>
                         )}
                     </DialogDescription>
@@ -220,7 +226,9 @@ function FlowFilesPromoteDialogForm({ files, flowId, onClose }: FlowFilesPromote
                             name="destination"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{isMulti ? 'Destination directory' : 'Destination path'}</FormLabel>
+                                    <FormLabel>
+                                        {isMulti ? uiT('Destination directory') : uiT('Destination path')}
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
@@ -229,7 +237,7 @@ function FlowFilesPromoteDialogForm({ files, flowId, onClose }: FlowFilesPromote
                                             disabled={isPromoting}
                                             placeholder={
                                                 isMulti
-                                                    ? 'Leave empty to save into the library root'
+                                                    ? uiT('Leave empty to save into the library root')
                                                     : 'results/scan.txt'
                                             }
                                         />
@@ -259,7 +267,7 @@ function FlowFilesPromoteDialogForm({ files, flowId, onClose }: FlowFilesPromote
                                 type="button"
                                 variant="outline"
                             >
-                                Cancel
+                                {uiT('Cancel')}
                             </Button>
                             <OverwriteButtons
                                 isDisabled={isSubmitDisabled}
@@ -269,7 +277,7 @@ function FlowFilesPromoteDialogForm({ files, flowId, onClose }: FlowFilesPromote
                                 }}
                                 overwriteLabel={overwriteCtaLabel}
                                 primaryIcon={BookmarkPlus}
-                                primaryLabel="Save"
+                                primaryLabel={uiT('Save')}
                                 primaryType="submit"
                             />
                         </div>

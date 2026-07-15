@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import Logo from '@/components/icons/logo';
+import { uiT } from '@/lib/i18n';
 
 function OAuthResult() {
-    const [statusMessage, setStatusMessage] = useState('Authentication in progress...');
+    const [statusMessage, setStatusMessage] = useState(uiT('Authentication in progress...'));
     const messageRef = useRef(statusMessage);
     const prevMessageRef = useRef(statusMessage);
 
@@ -70,7 +71,7 @@ function OAuthResult() {
                     window.location.origin,
                 );
 
-                updateMessage('Authentication complete, closing window...');
+                updateMessage(uiT('Authentication complete, closing window...'));
                 handleClose(successDelay);
             } catch (e) {
                 console.error('Failed to send message to opener:', e);

@@ -2,6 +2,7 @@ import { Check, Loader2, X } from 'lucide-react';
 import { type KeyboardEvent, type Ref } from 'react';
 
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 interface InlineEditInputProps {
@@ -94,14 +95,14 @@ export function InlineEditInput({
                 className="gap-0 pr-2"
             >
                 <InputGroupButton
-                    aria-label="Save"
+                    aria-label={uiT('Save')}
                     disabled={busy}
                     onClick={onSave}
                 >
                     {busy ? <Loader2 className="animate-spin" /> : <Check />}
                 </InputGroupButton>
                 <InputGroupButton
-                    aria-label="Cancel"
+                    aria-label={uiT('Cancel')}
                     disabled={busy}
                     onClick={onCancel}
                 >

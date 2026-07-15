@@ -30,6 +30,7 @@ import { Toggle } from '@/components/ui/toggle';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ResultType, StatusType, type TerminalFragmentFragment, useRenameFlowMutation } from '@/graphql/types';
 import { useTableState } from '@/hooks/use-table-state';
+import { uiT } from '@/lib/i18n';
 import { mergeHrefWithSearchParams } from '@/lib/url-params';
 import { formatDate } from '@/lib/utils/format';
 import { useFavorites } from '@/providers/favorites-provider';
@@ -40,23 +41,23 @@ const statusConfig: Record<
     { label: string; variant: 'default' | 'destructive' | 'outline' | 'secondary' }
 > = {
     [StatusType.Created]: {
-        label: 'Created',
+        label: uiT('Created'),
         variant: 'outline',
     },
     [StatusType.Failed]: {
-        label: 'Failed',
+        label: uiT('Failed'),
         variant: 'destructive',
     },
     [StatusType.Finished]: {
-        label: 'Finished',
+        label: uiT('Finished'),
         variant: 'secondary',
     },
     [StatusType.Running]: {
-        label: 'Running',
+        label: uiT('Running'),
         variant: 'default',
     },
     [StatusType.Waiting]: {
-        label: 'Waiting',
+        label: uiT('Waiting'),
         variant: 'outline',
     },
 };
@@ -131,11 +132,11 @@ function Flows() {
             });
 
             if (data?.renameFlow === ResultType.Success) {
-                toast.success('Flow renamed successfully');
+                toast.success(uiT('Flow renamed successfully'));
                 setEditingFlowId(null);
             }
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to rename flow';
+            const errorMessage = error instanceof Error ? error.message : uiT('Failed to rename flow');
             toast.error(errorMessage);
         }
     }, [editingFlowId, renameFlowMutation]);
@@ -171,7 +172,7 @@ function Flows() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="ID"
+                        title={uiT('ID')}
                     />
                 ),
                 maxSize: 80,
@@ -196,7 +197,7 @@ function Flows() {
                                     inputRef={editingInputRef}
                                     onCancel={handleFlowRenameCancel}
                                     onSave={handleFlowRenameSave}
-                                    placeholder="Flow title"
+                                    placeholder={uiT('Flow title')}
                                 />
                             </div>
                         );
@@ -208,7 +209,7 @@ function Flows() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Title"
+                        title={uiT('Title')}
                     />
                 ),
                 meta: { searchable: true },
@@ -234,7 +235,7 @@ function Flows() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Status"
+                        title={uiT('Status')}
                     />
                 ),
                 maxSize: 130,
@@ -258,14 +259,14 @@ function Flows() {
                                 className="size-4"
                                 provider={flow.provider}
                             />
-                            <span className="text-sm">{flow.provider?.name || 'N/A'}</span>
+                            <span className="text-sm">{flow.provider?.name || uiT('N/A')}</span>
                         </div>
                     );
                 },
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Provider"
+                        title={uiT('Provider')}
                     />
                 ),
                 id: 'provider',
@@ -291,7 +292,7 @@ function Flows() {
                     const terminals = flow.terminals || [];
 
                     if (terminals.length === 0) {
-                        return <span className="text-muted-foreground text-sm">No terminals</span>;
+                        return <span className="text-muted-foreground text-sm">{uiT('No terminals')}</span>;
                     }
 
                     const isAnyConnected = terminals.some((t: TerminalFragmentFragment) => t.connected);
@@ -330,7 +331,7 @@ function Flows() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Terminals"
+                        title={uiT('Terminals')}
                     />
                 ),
                 id: 'terminals',
@@ -355,11 +356,11 @@ function Flows() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Created"
+                        title={uiT('Created')}
                     />
                 ),
                 maxSize: 140,
-                meta: { columnMenuLabel: 'Created' },
+                meta: { columnMenuLabel: uiT('Created') },
                 minSize: 100,
                 size: 120,
                 sortingFn: (rowA, rowB) => {
@@ -379,11 +380,11 @@ function Flows() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Updated"
+                        title={uiT('Updated')}
                     />
                 ),
                 maxSize: 140,
-                meta: { columnMenuLabel: 'Updated' },
+                meta: { columnMenuLabel: uiT('Updated') },
                 minSize: 100,
                 size: 120,
                 sortingFn: (rowA, rowB) => {
@@ -401,7 +402,7 @@ function Flows() {
                     return (
                         <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                             <Toggle
-                                aria-label="Toggle favorite"
+                                aria-label={uiT('Toggle favorite')}
                                 className="border-none data-[state=on]:bg-transparent data-[state=on]:*:[svg]:fill-yellow-500 data-[state=on]:*:[svg]:stroke-yellow-500"
                                 onClick={async (event) => {
                                     event.stopPropagation();
@@ -416,7 +417,7 @@ function Flows() {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
-                                        aria-label="Open menu"
+                                        aria-label={uiT('Open menu')}
                                         className="size-8 p-0"
                                         onClick={(e) => e.stopPropagation()}
                                         variant="ghost"
@@ -431,11 +432,11 @@ function Flows() {
                                 >
                                     <DropdownMenuItem onClick={() => handleFlowOpen(flow.id)}>
                                         <Eye />
-                                        View
+                                        {uiT('View')}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleFlowRenameStart(flow)}>
                                         <PencilLine className="size-3" />
-                                        Rename
+                                        {uiT('Rename')}
                                     </DropdownMenuItem>
                                     {isRunning && (
                                         <DropdownMenuItem
@@ -445,12 +446,12 @@ function Flows() {
                                             {finishingFlowIds.has(flow.id) ? (
                                                 <>
                                                     <Loader2 className="animate-spin" />
-                                                    Finishing...
+                                                    {uiT('Finishing...')}
                                                 </>
                                             ) : (
                                                 <>
                                                     <Pause />
-                                                    Finish
+                                                    {uiT('Finish')}
                                                 </>
                                             )}
                                         </DropdownMenuItem>
@@ -463,12 +464,12 @@ function Flows() {
                                         {deletingFlowIds.has(flow.id) ? (
                                             <>
                                                 <Loader2 className="size-4 animate-spin" />
-                                                Deleting...
+                                                {uiT('Deleting...')}
                                             </>
                                         ) : (
                                             <>
                                                 <Trash className="size-4" />
-                                                Delete
+                                                {uiT('Delete')}
                                             </>
                                         )}
                                     </DropdownMenuItem>
@@ -510,16 +511,16 @@ function Flows() {
                 <>
                     <ContextMenuItem onClick={async () => toggleFavoriteFlow(flow.id)}>
                         <Star />
-                        {isFavoriteFlow(flow.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        {isFavoriteFlow(flow.id) ? uiT('Remove from favorites') : uiT('Add to favorites')}
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem onClick={() => handleFlowOpen(flow.id)}>
                         <Eye />
-                        View
+                        {uiT('View')}
                     </ContextMenuItem>
                     <ContextMenuItem onClick={() => handleFlowRenameStart(flow)}>
                         <Pencil />
-                        Rename
+                        {uiT('Rename')}
                     </ContextMenuItem>
 
                     {isRunning && (
@@ -528,7 +529,7 @@ function Flows() {
                             onClick={() => handleFlowFinish(flow)}
                         >
                             <Pause />
-                            {finishingFlowIds.has(flow.id) ? 'Finishing...' : 'Finish'}
+                            {finishingFlowIds.has(flow.id) ? uiT('Finishing...') : uiT('Finish')}
                         </ContextMenuItem>
                     )}
                     <ContextMenuSeparator />
@@ -537,7 +538,7 @@ function Flows() {
                         onClick={() => handleFlowDeleteDialogOpen(flow)}
                     >
                         <Trash />
-                        {deletingFlowIds.has(flow.id) ? 'Deleting...' : 'Delete'}
+                        {deletingFlowIds.has(flow.id) ? uiT('Deleting...') : uiT('Delete')}
                     </ContextMenuItem>
                 </>
             );
@@ -575,7 +576,7 @@ function Flows() {
                     <BreadcrumbList className="min-w-0 flex-nowrap">
                         <BreadcrumbItem className="min-w-0">
                             <GitFork className="size-4 shrink-0" />
-                            <BreadcrumbPage className="min-w-0 truncate">Flows</BreadcrumbPage>
+                            <BreadcrumbPage className="min-w-0 truncate">{uiT('Flows')}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -583,7 +584,7 @@ function Flows() {
             <div className="flex shrink-0 items-center gap-2 px-4">
                 <HeaderButton
                     icon={<Plus />}
-                    label="New Flow"
+                    label={uiT('New Flow')}
                     onClick={() => navigate('/flows/new')}
                     variant="secondary"
                 />
@@ -597,9 +598,9 @@ function Flows() {
                 {pageHeader}
                 <div className="flex flex-col gap-4 p-4">
                     <StatusCard
-                        description="Please wait while we fetch your conversation flows"
+                        description={uiT('Please wait while we fetch your conversation flows')}
                         icon={<Loader2 className="text-muted-foreground size-16 animate-spin" />}
-                        title="Loading flows..."
+                        title={uiT('Loading flows...')}
                     />
                 </div>
             </>
@@ -618,12 +619,12 @@ function Flows() {
                                 variant="secondary"
                             >
                                 <Plus />
-                                New Flow
+                                {uiT('New Flow')}
                             </Button>
                         }
-                        description="Get started by creating your first conversation flow"
+                        description={uiT('Get started by creating your first conversation flow')}
                         icon={<GitFork className="text-muted-foreground size-8" />}
-                        title="No flows found"
+                        title={uiT('No flows found')}
                     />
                 </div>
             </>
@@ -638,7 +639,7 @@ function Flows() {
                     columns={columns}
                     data={flows}
                     empty={{ entityName: 'flows' }}
-                    filterPlaceholder="Filter flows..."
+                    filterPlaceholder={uiT('Filter flows...')}
                     filterValue={filter}
                     onFilterChange={setFilter}
                     onPageChange={handlePageChange}
@@ -648,8 +649,8 @@ function Flows() {
                 />
 
                 <ConfirmationDialog
-                    cancelText="Cancel"
-                    confirmText="Delete"
+                    cancelText={uiT('Cancel')}
+                    confirmText={uiT('Delete')}
                     handleConfirm={handleFlowDelete}
                     handleOpenChange={setIsDeleteDialogOpen}
                     isOpen={isDeleteDialogOpen}

@@ -17,6 +17,7 @@ import {
     useToolcallsStatsByPeriodQuery,
     useUsageStatsByPeriodQuery,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { formatCost, formatDuration, formatNumber, formatTokenCount } from '@/lib/utils/format';
 
@@ -137,7 +138,7 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                 empty={!flowsByPeriodLoading && flowsChartData.length === 0}
                 height={320}
                 loading={flowsByPeriodLoading}
-                title="Flows Activity Over Time"
+                title={uiT('Flows Activity Over Time')}
             >
                 <BarChart
                     data={flowsChartData}
@@ -172,19 +173,19 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                     <Bar
                         dataKey="flows"
                         fill={CHART_COLORS.area1}
-                        name="Flows"
+                        name={uiT('Flows')}
                         radius={[4, 4, 0, 0]}
                     />
                     <Bar
                         dataKey="tasks"
                         fill={CHART_COLORS.area2}
-                        name="Tasks"
+                        name={uiT('Tasks')}
                         radius={[4, 4, 0, 0]}
                     />
                     <Bar
                         dataKey="subtasks"
                         fill={CHART_COLORS.area3}
-                        name="Subtasks"
+                        name={uiT('Subtasks')}
                         radius={[4, 4, 0, 0]}
                     />
                 </BarChart>
@@ -195,7 +196,7 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                     description="Number of tool executions per day"
                     empty={!toolcallsByPeriodLoading && toolcallsChartData.length === 0}
                     loading={toolcallsByPeriodLoading}
-                    title="Tool Calls Over Time"
+                    title={uiT('Tool Calls Over Time')}
                 >
                     <BarChart
                         data={toolcallsChartData}
@@ -230,17 +231,17 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                         <Bar
                             dataKey="count"
                             fill={CHART_COLORS.bar1}
-                            name="Tool Calls"
+                            name={uiT('Tool Calls')}
                             radius={[4, 4, 0, 0]}
                         />
                     </BarChart>
                 </ChartCard>
 
                 <ChartCard
-                    description="Input and output tokens processed daily"
+                    description={uiT('Input and output tokens processed daily')}
                     empty={!usageByPeriodLoading && usageChartData.length === 0}
                     loading={usageByPeriodLoading}
-                    title="Token Usage Over Time"
+                    title={uiT('Token Usage Over Time')}
                 >
                     <AreaChart
                         data={usageChartData}
@@ -277,7 +278,7 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                             dataKey="tokensIn"
                             fill={CHART_COLORS.area1}
                             fillOpacity={0.3}
-                            name="Tokens In"
+                            name={uiT('Tokens In')}
                             stroke={CHART_COLORS.area1}
                             type="monotone"
                         />
@@ -285,7 +286,7 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                             dataKey="tokensOut"
                             fill={CHART_COLORS.area2}
                             fillOpacity={0.3}
-                            name="Tokens Out"
+                            name={uiT('Tokens Out')}
                             stroke={CHART_COLORS.area2}
                             type="monotone"
                         />
@@ -298,7 +299,7 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                 empty={!usageByPeriodLoading && usageChartData.length === 0}
                 height={240}
                 loading={usageByPeriodLoading}
-                title="Cost Over Time"
+                title={uiT('Cost Over Time')}
             >
                 <AreaChart
                     data={usageChartData}
@@ -335,7 +336,7 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                         dataKey="costIn"
                         fill={CHART_COLORS.area1}
                         fillOpacity={0.3}
-                        name="Cost In"
+                        name={uiT('Cost In')}
                         stroke={CHART_COLORS.area1}
                         type="monotone"
                     />
@@ -343,7 +344,7 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                         dataKey="costOut"
                         fill={CHART_COLORS.area3}
                         fillOpacity={0.3}
-                        name="Cost Out"
+                        name={uiT('Cost Out')}
                         stroke={CHART_COLORS.area3}
                         type="monotone"
                     />
@@ -352,8 +353,8 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Flow Execution Details</CardTitle>
-                    <CardDescription>Execution time and tool calls breakdown per flow</CardDescription>
+                    <CardTitle>{uiT('Flow Execution Details')}</CardTitle>
+                    <CardDescription>{uiT('Execution time and tool calls breakdown per flow')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {executionStatsLoading ? (
@@ -362,7 +363,7 @@ export function DashboardAnalytics({ period }: { period: UsageStatsPeriod }) {
                         </div>
                     ) : !deferredExecutionStats.length ? (
                         <p className="text-muted-foreground py-8 text-center text-sm">
-                            No flow executions in this period
+                            {uiT('No flow executions in this period')}
                         </p>
                     ) : (
                         <div

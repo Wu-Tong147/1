@@ -20,6 +20,7 @@ import {
     useUpdateKnowledgeDocumentMutation,
 } from '@/graphql/types';
 import { useLatestRef } from '@/hooks/use-latest-ref';
+import { uiT } from '@/lib/i18n';
 import { Log } from '@/lib/log';
 import { URL_PARAMS } from '@/lib/url-params';
 import { useUser } from '@/providers/user-provider';
@@ -159,8 +160,9 @@ export function KnowledgesProvider({ children }: KnowledgesProviderProps) {
 
                 return result?.createKnowledgeDocument;
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Failed to create knowledge document';
-                toast.error('Failed to create knowledge document', { description: errorMessage });
+                const errorMessage =
+                    error instanceof Error ? error.message : uiT('Failed to create knowledge document');
+                toast.error(uiT('Failed to create knowledge document'), { description: errorMessage });
                 Log.error('Error creating knowledge document:', error);
                 throw error;
             }
@@ -175,8 +177,9 @@ export function KnowledgesProvider({ children }: KnowledgesProviderProps) {
 
                 return result?.updateKnowledgeDocument;
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Failed to update knowledge document';
-                toast.error('Failed to update knowledge document', { description: errorMessage });
+                const errorMessage =
+                    error instanceof Error ? error.message : uiT('Failed to update knowledge document');
+                toast.error(uiT('Failed to update knowledge document'), { description: errorMessage });
                 Log.error('Error updating knowledge document:', error);
                 throw error;
             }
@@ -189,8 +192,9 @@ export function KnowledgesProvider({ children }: KnowledgesProviderProps) {
             try {
                 await deleteKnowledgeMutation({ variables: { id } });
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Failed to delete knowledge document';
-                toast.error('Failed to delete knowledge document', { description: errorMessage });
+                const errorMessage =
+                    error instanceof Error ? error.message : uiT('Failed to delete knowledge document');
+                toast.error(uiT('Failed to delete knowledge document'), { description: errorMessage });
                 Log.error('Error deleting knowledge document:', error);
                 throw error;
             }

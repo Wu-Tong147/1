@@ -6,6 +6,7 @@ import {
     useKnowledgeDocumentQuery,
     useSettingsProvidersQuery,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 
 import { apolloTitle } from './apollo-title';
 import { formatPromptId } from './format-prompt-id';
@@ -34,8 +35,8 @@ export type TitleResolver = ((params: RouteParams) => string) | ComponentType<{ 
  * from this registry onto the matching <Route>.
  */
 export const routeTitles = {
-    apiTokens: { title: 'API Tokens' },
-    dashboard: { title: 'Dashboard' },
+    apiTokens: { title: uiT('API Tokens') },
+    dashboard: { title: uiT('Dashboard') },
     flow: {
         title: apolloTitle({
             select: (data, { flowId }) =>
@@ -44,55 +45,55 @@ export const routeTitles = {
             variables: ({ flowId }) => (flowId ? { id: flowId } : null),
         }),
     },
-    flowReport: { title: 'Flow report' },
-    flows: { title: 'Flows' },
+    flowReport: { title: uiT('Flow report') },
+    flows: { title: uiT('Flows') },
     knowledge: {
         title: apolloTitle({
             select: (data, { knowledgeId }) =>
-                knowledgeId === 'new' ? 'New knowledge' : data?.knowledgeDocument?.question || 'Knowledge',
+                knowledgeId === 'new' ? uiT('New knowledge') : data?.knowledgeDocument?.question || uiT('Knowledge'),
             useQuery: useKnowledgeDocumentQuery,
             variables: ({ knowledgeId }) => (!knowledgeId || knowledgeId === 'new' ? null : { id: knowledgeId }),
         }),
     },
-    knowledges: { title: 'Knowledges' },
+    knowledges: { title: uiT('Knowledges') },
     login: { title: 'Login' },
-    newFlow: { title: 'New flow' },
+    newFlow: { title: uiT('New flow') },
     oauth: { title: 'OAuth' },
     prompt: {
         title: (params: RouteParams) => (params.promptId ? formatPromptId(params.promptId) : 'Prompt'),
     },
-    prompts: { title: 'Prompts' },
+    prompts: { title: uiT('Prompts') },
 
     provider: {
         title: apolloTitle({
             select: (data, { providerId }) => {
                 if (providerId === 'new') {
-                    return 'New provider';
+                    return uiT('New provider');
                 }
 
                 const provider = data?.settingsProviders.userDefined?.find(
                     (candidate) => String(candidate.id) === providerId,
                 );
 
-                return provider?.name || 'Provider';
+                return provider?.name || uiT('Provider');
             },
             useQuery: useSettingsProvidersQuery,
             variables: ({ providerId }) => (providerId === 'new' ? null : {}),
         }),
     },
 
-    providers: { title: 'Providers' },
+    providers: { title: uiT('Providers') },
 
-    resources: { title: 'Resources' },
+    resources: { title: uiT('Resources') },
 
     template: {
         title: apolloTitle({
             select: (data, { templateId }) =>
-                templateId === 'new' ? 'New template' : data?.flowTemplate?.title || 'Template',
+                templateId === 'new' ? uiT('New template') : data?.flowTemplate?.title || uiT('Template'),
             useQuery: useFlowTemplateQuery,
             variables: ({ templateId }) => (!templateId || templateId === 'new' ? null : { templateId }),
         }),
     },
 
-    templates: { title: 'Templates' },
+    templates: { title: uiT('Templates') },
 } as const satisfies Record<string, RouteTitleHandle>;

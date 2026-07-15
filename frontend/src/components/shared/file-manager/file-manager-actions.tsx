@@ -1,5 +1,7 @@
 import { ClipboardCopy, Copy, Download, FileSymlink, FolderOutput, Trash2 } from 'lucide-react';
 
+import { uiT } from '@/lib/i18n';
+
 import type { FileManagerAction, FileManagerBulkAction, FileNode } from './file-manager-types';
 
 /**
@@ -21,7 +23,7 @@ export const downloadAction = (
         getHrefDownloadAttr: (file) => (file.isDir ? `${file.name}.${archiveExtension}` : file.name),
         icon: Download,
         id: '__builtin_download',
-        label: 'Download',
+        label: uiT('Download'),
         onSelect: () => {},
     };
 };
@@ -31,7 +33,7 @@ export const copyPathAction = (onCopyPath: (file: FileNode) => void): FileManage
     appliesToDirs: true,
     icon: ClipboardCopy,
     id: '__builtin_copy_path',
-    label: 'Copy path',
+    label: uiT('Copy path'),
     onSelect: onCopyPath,
 });
 
@@ -43,7 +45,7 @@ export const deleteAction = (onDelete: (file: FileNode) => void): FileManagerAct
     appliesToDirs: true,
     icon: Trash2,
     id: '__builtin_delete',
-    label: 'Delete',
+    label: uiT('Delete'),
     onSelect: onDelete,
     separatorBefore: true,
 });
@@ -76,7 +78,7 @@ export const bulkDeleteAction = (
     onDelete: (files: FileNode[]) => Promise<void> | void,
     options: BulkDeleteOptions = {},
 ): FileManagerBulkAction => {
-    const label = options.label ?? 'Delete';
+    const label = options.label ?? uiT('Delete');
 
     return {
         confirm: {
@@ -105,7 +107,7 @@ export const bulkCopyPathsAction = (
 ): FileManagerBulkAction => ({
     icon: ClipboardCopy,
     id: '__builtin_bulk_copy_paths',
-    label: options.label ?? 'Copy paths',
+    label: options.label ?? uiT('Copy paths'),
     onSelect: (files) => onCopy(files.map((file) => file.path)),
     overflow: options.overflow ?? true,
 });
@@ -150,7 +152,7 @@ export const bulkPromoteAction = (
 ): FileManagerBulkAction => ({
     icon: FolderOutput,
     id: '__builtin_bulk_promote',
-    label: options.label ?? 'Save as resources',
+    label: options.label ?? uiT('Save as resources'),
     onSelect: onPromote,
     overflow: options.overflow,
 });
@@ -194,7 +196,7 @@ export const bulkDownloadAction = (
 ): FileManagerBulkAction => ({
     icon: Download,
     id: '__builtin_bulk_download',
-    label: options.label ?? 'Download',
+    label: options.label ?? uiT('Download'),
     onSelect: (files) => {
         if (files.length === 0) {
             return;

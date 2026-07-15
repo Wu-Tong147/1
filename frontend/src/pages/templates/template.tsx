@@ -49,11 +49,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useTemplateDetailNavigation } from '@/features/templates/use-template-detail-navigation';
 import { useFlowTemplateQuery } from '@/graphql/types';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { type Template, useTemplates } from '@/providers/templates-provider';
 
 const formSchema = z.object({
-    text: z.string().trim().min(1, { message: 'Text is required' }),
+    text: z
+        .string()
+        .trim()
+        .min(1, { message: uiT('Text is required') }),
     title: z.string().trim().min(1, { message: 'Title is required' }),
 });
 
@@ -315,7 +319,7 @@ function Template() {
             // Preserve the original `text` from the server so that an inline
             // rename never overwrites unsaved edits in the form below.
             await updateTemplate(templateId, { text: template.text, title: newTitle });
-            toast.success('Template renamed successfully');
+            toast.success(uiT('Template renamed successfully'));
             handleTemplateRenameCancel();
         } catch {
             // Error already handled in provider with toast
@@ -420,7 +424,7 @@ function Template() {
                                         inputRef={editingInputRef}
                                         onCancel={handleTemplateRenameCancel}
                                         onSave={handleTemplateRenameSave}
-                                        placeholder="Template title"
+                                        placeholder={uiT('Template title')}
                                     />
                                 ) : canShowActions ? (
                                     <Tooltip>
@@ -429,14 +433,14 @@ function Template() {
                                                 className="max-w-64 min-w-0 cursor-text truncate select-none"
                                                 onDoubleClick={handleTemplateRenameStart}
                                             >
-                                                {templateName ?? 'Template'}
+                                                {templateName ?? uiT('Template')}
                                             </BreadcrumbPage>
                                         </TooltipTrigger>
-                                        <TooltipContent>Double-click to rename</TooltipContent>
+                                        <TooltipContent>{uiT('Double-click to rename')}</TooltipContent>
                                     </Tooltip>
                                 ) : (
                                     <BreadcrumbPage className="min-w-0 truncate">
-                                        {isNew ? 'New template' : (templateName ?? 'Template')}
+                                        {isNew ? uiT('New template') : (templateName ?? uiT('Template'))}
                                     </BreadcrumbPage>
                                 )}
                             </BreadcrumbItem>
@@ -449,7 +453,7 @@ function Template() {
                             controller={templateNav}
                             renderItem={renderTemplateItem}
                             sheetIcon={<FileText className="size-4" />}
-                            sheetTitle="Templates"
+                            sheetTitle={uiT('Templates')}
                         />
                     )}
                     <Button
@@ -463,7 +467,7 @@ function Template() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
-                                    aria-label="Template actions"
+                                    aria-label={uiT('Template actions')}
                                     className="size-8 p-0"
                                     variant="ghost"
                                 >
@@ -482,11 +486,11 @@ function Template() {
                                             onSelect={(event) => event.preventDefault()}
                                         >
                                             <FileText className="size-4" />
-                                            Templates
+                                            {uiT('Templates')}
                                             <div className="-my-1.5 -mr-2 ml-auto flex items-center">
                                                 <DetailNavigationButtons<Template>
                                                     controller={templateNav}
-                                                    sheetTitle="Templates"
+                                                    sheetTitle={uiT('Templates')}
                                                     size="sm"
                                                 />
                                             </div>
@@ -496,7 +500,7 @@ function Template() {
                                 )}
                                 <DropdownMenuItem onClick={handleTemplateRenameStart}>
                                     <Pencil className="size-3" />
-                                    Rename
+                                    {uiT('Rename')}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -506,12 +510,12 @@ function Template() {
                                     {isDeleting ? (
                                         <>
                                             <Loader2 className="size-4 animate-spin" />
-                                            Deleting...
+                                            {uiT('Deleting...')}
                                         </>
                                     ) : (
                                         <>
                                             <Trash className="size-4" />
-                                            Delete
+                                            {uiT('Delete')}
                                         </>
                                     )}
                                 </DropdownMenuItem>
@@ -525,7 +529,7 @@ function Template() {
                     controller={templateNav}
                     renderItem={renderTemplateItem}
                     sheetIcon={<FileText className="size-4" />}
-                    sheetTitle="Templates"
+                    sheetTitle={uiT('Templates')}
                 />
             )}
         </>
@@ -605,7 +609,7 @@ function Template() {
                         <SheetHeader className="border-b p-4">
                             <SheetTitle className="flex items-center gap-2 pr-8 text-base">
                                 <FileText className="size-4" />
-                                <span>Preset templates</span>
+                                <span>{uiT('Preset templates')}</span>
                                 <Badge
                                     className="ml-auto font-normal tabular-nums"
                                     variant="secondary"
@@ -635,7 +639,7 @@ function Template() {
                             <div className="border-b p-4">
                                 <h3 className="flex items-center gap-2 text-base font-semibold">
                                     <FileText className="size-4" />
-                                    <span>Preset templates</span>
+                                    <span>{uiT('Preset templates')}</span>
                                     <Badge
                                         className="ml-auto font-normal tabular-nums"
                                         variant="secondary"
@@ -670,9 +674,11 @@ function Template() {
                 <div className="flex min-h-[calc(100dvh-3rem)] items-center justify-center p-4">
                     <Card className="w-full max-w-2xl">
                         <CardContent className="flex flex-col items-center gap-4 pt-6 text-center">
-                            <h2 className="text-xl font-semibold">Template not found</h2>
-                            <p className="text-muted-foreground">The template you are looking for does not exist.</p>
-                            <Button onClick={() => navigate('/templates')}>Back to Templates</Button>
+                            <h2 className="text-xl font-semibold">{uiT('Template not found')}</h2>
+                            <p className="text-muted-foreground">
+                                {uiT('The template you are looking for does not exist.')}
+                            </p>
+                            <Button onClick={() => navigate('/templates')}>{uiT('Back to Templates')}</Button>
                         </CardContent>
                     </Card>
                 </div>
@@ -689,7 +695,7 @@ function Template() {
                         <CardContent className="flex flex-col gap-4 pt-6">
                             <div className="text-center">
                                 <h1 className="text-2xl font-semibold">
-                                    {isNew ? 'Create a new template' : 'Edit template'}
+                                    {isNew ? uiT('Create a new template') : uiT('Edit template')}
                                 </h1>
                                 <p className="text-muted-foreground mt-2">
                                     Add title and content for your template or use a
@@ -698,7 +704,7 @@ function Template() {
                                         onClick={() => setIsAsideOpen((open) => !open)}
                                         variant="link"
                                     >
-                                        Preset template
+                                        {uiT('Preset template')}
                                     </Button>
                                 </p>
                             </div>
@@ -716,7 +722,7 @@ function Template() {
                                                     <Input
                                                         autoFocus={isNew}
                                                         disabled={isSaving}
-                                                        placeholder="Title"
+                                                        placeholder={uiT('Title')}
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -737,11 +743,15 @@ function Template() {
                                                             maxRows={9}
                                                             minRows={1}
                                                             onKeyDown={handleKeyDown}
-                                                            placeholder="Content"
+                                                            placeholder={uiT('Content')}
                                                         />
                                                         <InputGroupAddon align="block-end">
                                                             <InputGroupButton
-                                                                aria-label={isNew ? 'Create template' : 'Save template'}
+                                                                aria-label={
+                                                                    isNew
+                                                                        ? uiT('Create template')
+                                                                        : uiT('Save template')
+                                                                }
                                                                 className="ml-auto"
                                                                 disabled={
                                                                     isSaving ||
@@ -749,7 +759,11 @@ function Template() {
                                                                     (!isNew && !hasUnsavedChanges)
                                                                 }
                                                                 size="icon-xs"
-                                                                title={isNew ? 'Create template' : 'Save template'}
+                                                                title={
+                                                                    isNew
+                                                                        ? uiT('Create template')
+                                                                        : uiT('Save template')
+                                                                }
                                                                 type="submit"
                                                                 variant="default"
                                                             >
@@ -774,9 +788,9 @@ function Template() {
             </div>
             <ConfirmationDialog
                 confirmIcon={<FileSymlink />}
-                confirmText="Replace"
+                confirmText={uiT('Replace')}
                 confirmVariant="default"
-                description="Current form has content. Replace with the selected preset?"
+                description={uiT('Current form has content. Replace with the selected preset?')}
                 handleConfirm={handleConfirmReplacePreset}
                 handleOpenChange={(open) => {
                     if (!open) {
@@ -786,11 +800,11 @@ function Template() {
                     setIsReplaceConfirmOpen(open);
                 }}
                 isOpen={isReplaceConfirmOpen}
-                title="Replace content?"
+                title={uiT('Replace content?')}
             />
             <ConfirmationDialog
-                cancelText="Cancel"
-                confirmText="Delete"
+                cancelText={uiT('Cancel')}
+                confirmText={uiT('Delete')}
                 handleConfirm={handleTemplateDelete}
                 handleOpenChange={setIsDeleteDialogOpen}
                 isOpen={isDeleteDialogOpen}

@@ -32,6 +32,7 @@ import {
 import { StatusCard } from '@/components/ui/status-card';
 import { ProviderType, useDeleteProviderMutation, useSettingsProvidersQuery } from '@/graphql/types';
 import { useTableState } from '@/hooks/use-table-state';
+import { uiT } from '@/lib/i18n';
 import { formatDate } from '@/lib/utils/format';
 type Provider = ProviderConfigFragmentFragment;
 
@@ -51,7 +52,7 @@ const providerIcons: Record<ProviderType, React.ComponentType<React.SVGProps<SVG
 const providerTypes = [
     { label: 'Anthropic', type: ProviderType.Anthropic },
     { label: 'Bedrock', type: ProviderType.Bedrock },
-    { label: 'Custom', type: ProviderType.Custom },
+    { label: uiT('Custom'), type: ProviderType.Custom },
     { label: 'DeepSeek', type: ProviderType.Deepseek },
     { label: 'Gemini', type: ProviderType.Gemini },
     { label: 'GLM', type: ProviderType.Glm },
@@ -88,7 +89,7 @@ function SettingsProviders() {
                 setDeletingProvider(null);
                 setDeleteErrorMessage(null);
             } catch (error) {
-                setDeleteErrorMessage(error instanceof Error ? error.message : 'An error occurred while deleting');
+                setDeleteErrorMessage(error instanceof Error ? error.message : uiT('An error occurred while deleting'));
             }
         },
         [deleteProvider],
@@ -122,7 +123,7 @@ function SettingsProviders() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Name"
+                        title={uiT('Name')}
                     />
                 ),
                 // Name flexes to fill remaining width — fixed `size` would push
@@ -149,7 +150,7 @@ function SettingsProviders() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Type"
+                        title={uiT('Type')}
                     />
                 ),
                 meta: { searchable: true },
@@ -166,10 +167,10 @@ function SettingsProviders() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Created"
+                        title={uiT('Created')}
                     />
                 ),
-                meta: { columnMenuLabel: 'Created' },
+                meta: { columnMenuLabel: uiT('Created') },
                 size: 120,
                 sortingFn: (rowA, rowB) => {
                     const dateA = new Date(rowA.getValue('createdAt') as string);
@@ -188,7 +189,7 @@ function SettingsProviders() {
                 header: ({ column }) => (
                     <DataTableColumnHeader
                         column={column}
-                        title="Updated"
+                        title={uiT('Updated')}
                     />
                 ),
                 size: 120,
@@ -208,7 +209,7 @@ function SettingsProviders() {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
-                                        aria-label="Open menu"
+                                        aria-label={uiT('Open menu')}
                                         className="size-8 p-0"
                                         variant="ghost"
                                     >
@@ -235,12 +236,12 @@ function SettingsProviders() {
                                         {isDeleteLoading && deletingProvider?.id === provider.id ? (
                                             <>
                                                 <Loader2 className="size-4 animate-spin" />
-                                                Deleting...
+                                                {uiT('Deleting...')}
                                             </>
                                         ) : (
                                             <>
                                                 <Trash className="size-4" />
-                                                Delete
+                                                {uiT('Delete')}
                                             </>
                                         )}
                                     </DropdownMenuItem>
@@ -264,7 +265,7 @@ function SettingsProviders() {
         const { agents } = provider;
 
         if (!agents) {
-            return <div className="text-muted-foreground p-4 text-sm">No agent configuration available</div>;
+            return <div className="text-muted-foreground p-4 text-sm">{uiT('No agent configuration available')}</div>;
         }
 
         const getName = (key: string): string =>
@@ -297,7 +298,7 @@ function SettingsProviders() {
 
         return (
             <div className="bg-muted/20 border-t p-4">
-                <h4 className="font-medium">Agent Configurations</h4>
+                <h4 className="font-medium">{uiT('Agent Configurations')}</h4>
                 <hr className="border-muted-foreground/20 my-4" />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
                     {agentTypes.map(({ data, key, name }) => {
@@ -318,7 +319,9 @@ function SettingsProviders() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-muted-foreground text-sm">No configuration available</div>
+                                    <div className="text-muted-foreground text-sm">
+                                        {uiT('No configuration available')}
+                                    </div>
                                 )}
                             </div>
                         );
@@ -345,7 +348,7 @@ function SettingsProviders() {
                     onClick={() => handleProviderDeleteDialogOpen(provider)}
                 >
                     <Trash />
-                    {isDeleteLoading && deletingProvider?.id === provider.id ? 'Deleting...' : 'Delete'}
+                    {isDeleteLoading && deletingProvider?.id === provider.id ? uiT('Deleting...') : uiT('Delete')}
                 </ContextMenuItem>
             </>
         ),
@@ -357,9 +360,9 @@ function SettingsProviders() {
             <div className="flex flex-col gap-4">
                 <SettingsProvidersHeader />
                 <StatusCard
-                    description="Please wait while we fetch your provider configurations"
+                    description={uiT('Please wait while we fetch your provider configurations')}
                     icon={<Loader2 className="text-muted-foreground size-16 animate-spin" />}
-                    title="Loading providers..."
+                    title={uiT('Loading providers...')}
                 />
             </div>
         );
@@ -371,7 +374,7 @@ function SettingsProviders() {
                 <SettingsProvidersHeader />
                 <Alert variant="destructive">
                     <AlertCircle className="size-4" />
-                    <AlertTitle>Error loading providers</AlertTitle>
+                    <AlertTitle>{uiT('Error loading providers')}</AlertTitle>
                     <AlertDescription>{error.message}</AlertDescription>
                 </Alert>
             </div>
@@ -394,9 +397,9 @@ function SettingsProviders() {
                             Add Provider
                         </Button>
                     }
-                    description="Get started by adding your first language model provider"
+                    description={uiT('Get started by adding your first language model provider')}
                     icon={<Settings className="text-muted-foreground size-8" />}
-                    title="No providers configured"
+                    title={uiT('No providers configured')}
                 />
             </div>
         );
@@ -410,7 +413,7 @@ function SettingsProviders() {
             {(deleteError || deleteErrorMessage) && (
                 <Alert variant="destructive">
                     <AlertCircle className="size-4" />
-                    <AlertTitle>Error deleting provider</AlertTitle>
+                    <AlertTitle>{uiT('Error deleting provider')}</AlertTitle>
                     <AlertDescription>{deleteError?.message || deleteErrorMessage}</AlertDescription>
                 </Alert>
             )}
@@ -419,7 +422,7 @@ function SettingsProviders() {
                 columns={columns}
                 data={providers}
                 empty={{ entityName: 'providers' }}
-                filterPlaceholder="Filter providers..."
+                filterPlaceholder={uiT('Filter providers...')}
                 filterValue={filter}
                 onFilterChange={setFilter}
                 onPageChange={handlePageChange}
@@ -429,8 +432,8 @@ function SettingsProviders() {
             />
 
             <ConfirmationDialog
-                cancelText="Cancel"
-                confirmText="Delete"
+                cancelText={uiT('Cancel')}
+                confirmText={uiT('Delete')}
                 handleConfirm={() => handleProviderDelete(deletingProvider?.id)}
                 handleOpenChange={setIsDeleteDialogOpen}
                 isOpen={isDeleteDialogOpen}
@@ -450,7 +453,7 @@ function SettingsProvidersHeader() {
 
     return (
         <div className="flex items-center justify-between gap-4">
-            <p className="text-muted-foreground min-w-0 flex-1 truncate">Manage language model providers</p>
+            <p className="text-muted-foreground min-w-0 flex-1 truncate">{uiT('Manage language model providers')}</p>
 
             {/*
              * "Create Provider" is a dropdown trigger, not a submit-style action — it
@@ -467,7 +470,7 @@ function SettingsProvidersHeader() {
                         className="shrink-0"
                         variant="secondary"
                     >
-                        Create Provider
+                        {uiT('Create Provider')}
                         <ChevronDown className="size-4" />
                     </Button>
                 </DropdownMenuTrigger>

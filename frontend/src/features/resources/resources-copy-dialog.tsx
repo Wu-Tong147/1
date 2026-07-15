@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { uiT } from '@/lib/i18n';
 import { useResources } from '@/providers/resources-provider';
 
 import { resourcesCopyFormSchema, type ResourcesCopyFormValues, useResourcesCopy } from './use-resources-copy';
@@ -183,8 +184,14 @@ function ResourcesCopyDialogForm({ files, onClose }: ResourcesCopyDialogFormProp
     });
 
     const isSubmitDisabled = !form.formState.isValid;
-    const titleText = isMulti ? `Copy ${files.length} items` : files[0].isDir ? 'Copy directory' : 'Copy resource';
-    const overwriteCtaLabel = isMulti ? `Copy ${files.length} with overwrite` : 'Copy with overwrite';
+    const titleText = isMulti
+        ? `Copy ${files.length} items`
+        : files[0].isDir
+          ? uiT('Copy directory')
+          : uiT('Copy resource');
+    const overwriteCtaLabel = isMulti
+        ? uiT('Copy {{count}} with overwrite', { count: files.length })
+        : uiT('Copy with overwrite');
 
     return (
         <>
@@ -196,10 +203,10 @@ function ResourcesCopyDialogForm({ files, onClose }: ResourcesCopyDialogFormProp
                     </DialogTitle>
                     <DialogDescription>
                         {isMulti ? (
-                            <>Duplicate every selected item into the destination directory.</>
+                            <>{uiT('Duplicate every selected item into the destination directory.')}</>
                         ) : (
                             <>
-                                Duplicate <code>{files[0].path}</code> to a new path.
+                                {uiT('Duplicate')} <code>{files[0].path}</code> to a new path.
                             </>
                         )}
                     </DialogDescription>
@@ -215,7 +222,9 @@ function ResourcesCopyDialogForm({ files, onClose }: ResourcesCopyDialogFormProp
                             name="destination"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{isMulti ? 'Destination directory' : 'Destination path'}</FormLabel>
+                                    <FormLabel>
+                                        {isMulti ? uiT('Destination directory') : uiT('Destination path')}
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
@@ -223,7 +232,7 @@ function ResourcesCopyDialogForm({ files, onClose }: ResourcesCopyDialogFormProp
                                             autoFocus
                                             disabled={isCopying}
                                             placeholder={
-                                                isMulti ? 'Leave empty to copy into the library root' : undefined
+                                                isMulti ? uiT('Leave empty to copy into the library root') : undefined
                                             }
                                         />
                                     </FormControl>
@@ -234,7 +243,7 @@ function ResourcesCopyDialogForm({ files, onClose }: ResourcesCopyDialogFormProp
                                                 item keeps its current filename.
                                             </>
                                         ) : (
-                                            <>Relative path inside your library.</>
+                                            <>{uiT('Relative path inside your library.')}</>
                                         )}
                                     </FormDescription>
                                     <FormMessage />
@@ -249,7 +258,7 @@ function ResourcesCopyDialogForm({ files, onClose }: ResourcesCopyDialogFormProp
                                 type="button"
                                 variant="outline"
                             >
-                                Cancel
+                                {uiT('Cancel')}
                             </Button>
                             <OverwriteButtons
                                 isDisabled={isSubmitDisabled}
@@ -259,7 +268,7 @@ function ResourcesCopyDialogForm({ files, onClose }: ResourcesCopyDialogFormProp
                                 }}
                                 overwriteLabel={overwriteCtaLabel}
                                 primaryIcon={Copy}
-                                primaryLabel="Copy"
+                                primaryLabel={uiT('Copy')}
                                 primaryType="submit"
                             />
                         </div>

@@ -23,7 +23,7 @@ const hasTitle = (handle: unknown): handle is { title: TitleResolver } => {
  * Document `<title>` driver. Walks `useMatches()` for the deepest route
  * exposing `handle.title` and renders accordingly:
  *
- *   handle: { title: 'Dashboard' }                          // static
+ *   handle: { title: uiT('Dashboard') }                          // static
  *   handle: { title: (p) => formatPromptId(p.promptId!) }   // params-derived
  *   handle: { title: FlowTitle }                            // reactive (Apollo)
  *

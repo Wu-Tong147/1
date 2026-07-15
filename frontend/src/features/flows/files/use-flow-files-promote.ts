@@ -7,6 +7,7 @@ import type { RestResourceList } from '@/features/resources/resources-rest';
 
 import { pluralizeItems } from '@/features/resources/resources-utils';
 import { api, getApiErrorMessage, getApiErrorStatusCode } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 
 import { FLOW_FILES_PROMOTE_API_PATH } from './flow-files-constants';
 
@@ -14,8 +15,8 @@ export const flowFilesPromoteFormSchema = z.object({
     destination: z
         .string()
         .trim()
-        .min(1, { message: 'Destination cannot be empty' })
-        .refine((value) => !value.startsWith('/'), { message: 'Destination must be a relative path' })
+        .min(1, { message: uiT('Destination cannot be empty') })
+        .refine((value) => !value.startsWith('/'), { message: uiT('Destination must be a relative path') })
         .refine((value) => !value.split('/').includes('..'), { message: 'Destination must not contain ".."' }),
 });
 
@@ -79,7 +80,7 @@ export function useFlowFilesPromote({ flowId }: UseFlowFilesPromoteParams): UseF
                         ? `Stored at ${destination.trim()} in your resource library`
                         : `Stored ${sources.length} ${pluralizeItems(sources.length)} under ${destination.trim()} in your resource library`;
 
-                toast.success('Saved to resources', { description });
+                toast.success(uiT('Saved to resources'), { description });
 
                 return { kind: 'ok' };
             } catch (error) {
@@ -87,9 +88,9 @@ export function useFlowFilesPromote({ flowId }: UseFlowFilesPromoteParams): UseF
                     return { kind: 'conflict' };
                 }
 
-                const description = getApiErrorMessage(error, 'Failed to save resource');
+                const description = getApiErrorMessage(error, uiT('Failed to save resource'));
 
-                toast.error('Save as resource failed', { description });
+                toast.error(uiT('Save as resource failed'), { description });
 
                 return { kind: 'error' };
             } finally {

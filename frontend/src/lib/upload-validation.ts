@@ -31,7 +31,7 @@ const MEGABYTE = 1024 * 1024;
  * Validate a batch of `File` objects against the supplied limits. Returns
  * `null` when the batch is acceptable or the user-facing error message for
  * the **first** violation otherwise — callers typically forward this string
- * directly into a `toast.error('Upload failed', { description })`.
+ * directly into a `toast.error(uiT('Upload failed'), { description })`.
  *
  * Empty batches are treated as a no-op (`null`); callers usually short-circuit
  * before reaching the validator anyway.

@@ -10,6 +10,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 import type { FileManagerBulkAction, FileManagerLabels, FileNode } from './file-manager-types';
@@ -137,8 +138,8 @@ export function FileManagerBulkActionsBar({
     const baseSelectedText = labels.selectedLabel?.(selectedPaths.size) ?? `${selectedPaths.size} selected`;
     const sizeSuffix = (labels.formatSelectionSize ?? formatFileSize)(selectionTotalBytes);
     const selectedText = sizeSuffix ? `${baseSelectedText} · ${sizeSuffix}` : baseSelectedText;
-    const cancelText = labels.bulkCancel ?? 'Cancel';
-    const moreActionsText = labels.bulkMoreActions ?? 'More actions';
+    const cancelText = labels.bulkCancel ?? uiT('Cancel');
+    const moreActionsText = labels.bulkMoreActions ?? uiT('More actions');
 
     return (
         <>

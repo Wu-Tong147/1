@@ -10,15 +10,16 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { Input } from '@/components/ui/input';
 import { api, type ApiErrorResponse, type ApiHttpError } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 
 const passwordChangeSchema = z
     .object({
-        confirmPassword: z.string().min(1, { message: 'Confirm your password' }),
-        currentPassword: z.string().min(1, { message: 'Current password is required' }),
+        confirmPassword: z.string().min(1, { message: uiT('Confirm your password') }),
+        currentPassword: z.string().min(1, { message: uiT('Current password is required') }),
         newPassword: z
             .string()
-            .min(8, { message: 'Password must be at least 8 characters' })
-            .max(100, { message: 'Password must not exceed 100 characters' })
+            .min(8, { message: uiT('Password must be at least 8 characters') })
+            .max(100, { message: uiT('Password must not exceed 100 characters') })
             .refine(
                 (password) => {
                     if (password.length > 15) {
@@ -94,7 +95,7 @@ export function PasswordChangeForm({
             setShowNewPassword(false);
             setShowConfirmPassword(false);
 
-            toast.success('Password successfully changed');
+            toast.success(uiT('Password successfully changed'));
 
             if (onSuccess) {
                 onSuccess();
@@ -103,17 +104,17 @@ export function PasswordChangeForm({
             const error = err as ApiHttpError;
             const responseData = error.response?.data as ApiErrorResponse | undefined;
 
-            let errorMessage = 'Failed to change password';
+            let errorMessage = uiT('Failed to change password');
 
             if (responseData?.msg) {
                 errorMessage = responseData.msg;
             } else if (responseData?.code) {
                 switch (responseData.code) {
                     case 'AuthRequired':
-                        errorMessage = 'Authentication required';
+                        errorMessage = uiT('Authentication required');
                         break;
                     case 'Users.ChangePasswordCurrentUser.InvalidCurrentPassword':
-                        errorMessage = 'Current password is incorrect';
+                        errorMessage = uiT('Current password is incorrect');
                         break;
                     case 'Users.ChangePasswordCurrentUser.InvalidNewPassword':
                         errorMessage = 'New password does not meet requirements';
@@ -125,7 +126,7 @@ export function PasswordChangeForm({
                         errorMessage = 'User not found';
                         break;
                     default:
-                        errorMessage = responseData.msg || error.message || 'Failed to change password';
+                        errorMessage = responseData.msg || error.message || uiT('Failed to change password');
                 }
             } else if (error.message) {
                 errorMessage = error.message;
@@ -146,12 +147,12 @@ export function PasswordChangeForm({
                     name="currentPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Current Password</FormLabel>
+                            <FormLabel>{uiT('Current Password')}</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
                                         {...field}
-                                        placeholder="Enter your current password"
+                                        placeholder={uiT('Enter your current password')}
                                         type={showCurrentPassword ? 'text' : 'password'}
                                     />
                                     <Button
@@ -180,12 +181,12 @@ export function PasswordChangeForm({
                     name="newPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>New Password</FormLabel>
+                            <FormLabel>{uiT('New Password')}</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
                                         {...field}
-                                        placeholder="Enter new password"
+                                        placeholder={uiT('Enter new password')}
                                         type={showNewPassword ? 'text' : 'password'}
                                     />
                                     <Button
@@ -205,8 +206,9 @@ export function PasswordChangeForm({
                                 </div>
                             </FormControl>
                             <FormDescription className="text-xs">
-                                Must be 16+ characters, or 8+ with number, lowercase, uppercase, and special character
-                                (!@#$&*)
+                                {uiT(
+                                    'Must be 16+ characters, or 8+ with number, lowercase, uppercase, and special character (!@#$&*)',
+                                )}
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -218,7 +220,7 @@ export function PasswordChangeForm({
                     name="confirmPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Confirm New Password</FormLabel>
+                            <FormLabel>{uiT('Confirm New Password')}</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
@@ -257,7 +259,7 @@ export function PasswordChangeForm({
                             type="button"
                             variant="ghost"
                         >
-                            Skip for now
+                            {uiT('Skip for now')}
                         </Button>
                     )}
                     {isModal && (
@@ -266,11 +268,11 @@ export function PasswordChangeForm({
                             type="button"
                             variant="outline"
                         >
-                            Cancel
+                            {uiT('Cancel')}
                         </Button>
                     )}
                     <FormSubmitButton>
-                        <span>Update Password</span>
+                        <span>{uiT('Update Password')}</span>
                     </FormSubmitButton>
                 </div>
             </form>
