@@ -224,6 +224,7 @@ func TestGetSecretPatterns_AllFields(t *testing.T) {
 		GLMAPIKey:               "glm-123",
 		KimiAPIKey:              "kimi-123",
 		QwenAPIKey:              "qwen-123",
+		MiniMaxAPIKey:           "minimax-123",
 		GoogleAPIKey:            "AIza123",
 		GoogleCXKey:             "cx-123",
 		OAuthGoogleClientID:     "google-client-id",
@@ -240,7 +241,7 @@ func TestGetSecretPatterns_AllFields(t *testing.T) {
 
 	patterns := cfg.GetSecretPatterns()
 
-	expectedCount := 29
+	expectedCount := 30
 	if len(patterns) != expectedCount {
 		t.Errorf("expected %d patterns, got %d", expectedCount, len(patterns))
 	}
@@ -269,7 +270,7 @@ func clearConfigEnv(t *testing.T) {
 	t.Helper()
 
 	envVars := []string{
-		"DATABASE_URL", "DEBUG", "DATA_DIR", "ASK_USER", "INSTALLATION_ID", "LICENSE_KEY",
+		"DATABASE_URL", "DEBUG", "DATA_DIR", "ASK_USER", "EVIDENCE_RECEIPTS_ENABLED", "INSTALLATION_ID", "LICENSE_KEY",
 		"DOCKER_INSIDE", "DOCKER_NET_ADMIN", "DOCKER_SOCKET", "DOCKER_NETWORK",
 		"DOCKER_PUBLIC_IP", "DOCKER_WORK_DIR", "DOCKER_DEFAULT_IMAGE", "DOCKER_DEFAULT_IMAGE_FOR_PENTEST", "TERMINAL_TOOL_TIMEOUT",
 		"SERVER_PORT", "SERVER_HOST", "SERVER_USE_SSL", "SERVER_SSL_KEY", "SERVER_SSL_CRT",
@@ -294,6 +295,7 @@ func clearConfigEnv(t *testing.T) {
 		"GLM_API_KEY", "GLM_SERVER_URL", "GLM_PROVIDER",
 		"KIMI_API_KEY", "KIMI_SERVER_URL", "KIMI_PROVIDER",
 		"QWEN_API_KEY", "QWEN_SERVER_URL", "QWEN_PROVIDER",
+		"MINIMAX_API_KEY", "MINIMAX_SERVER_URL", "MINIMAX_PROVIDER",
 		"DUCKDUCKGO_ENABLED", "DUCKDUCKGO_REGION", "DUCKDUCKGO_SAFESEARCH", "DUCKDUCKGO_TIME_RANGE",
 		"SPLOITUS_ENABLED",
 		"GOOGLE_API_KEY", "GOOGLE_CX_KEY", "GOOGLE_LR_KEY",
@@ -331,6 +333,7 @@ func TestNewConfig_Defaults(t *testing.T) {
 	assert.Equal(t, "0.0.0.0", config.ServerHost)
 	assert.Equal(t, false, config.Debug)
 	assert.Equal(t, "./data", config.DataDir)
+	assert.Equal(t, false, config.EvidenceReceiptsEnabled)
 	assert.Equal(t, false, config.ServerUseSSL)
 	assert.Equal(t, "openai", config.EmbeddingProvider)
 	assert.Equal(t, 512, config.EmbeddingBatchSize)
@@ -509,6 +512,20 @@ func TestNewConfig_CorsOrigins(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, []string{"*"}, config.CorsOrigins)
+}
+
+func TestNewConfig_EvidenceReceipts(t *testing.T) {
+	clearConfigEnv(t)
+	t.Chdir(t.TempDir())
+
+	config, err := NewConfig()
+	require.NoError(t, err)
+	assert.Equal(t, false, config.EvidenceReceiptsEnabled)
+
+	t.Setenv("EVIDENCE_RECEIPTS_ENABLED", "true")
+	config, err = NewConfig()
+	require.NoError(t, err)
+	assert.Equal(t, true, config.EvidenceReceiptsEnabled)
 }
 
 func TestNewConfig_OllamaDefaults(t *testing.T) {

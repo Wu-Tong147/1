@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"pentagi/pkg/config"
@@ -173,6 +174,7 @@ type flowToolsExecutor struct {
 	db             database.Querier
 	cfg            *config.Config
 	embedder       embeddings.Embedder
+	evidence       evidenceReceiptRecorder
 	store          *pgvector.Store
 	graphitiClient *graphiti.Client
 	image          string
@@ -347,6 +349,16 @@ type FlowToolsExecutor interface {
 	GetReporterExecutor(cfg ReporterExecutorConfig) (ContextToolsExecutor, error)
 }
 
+// sharedReplacer is a process-level singleton for the anonymizer replacer.
+// The replacer is built from immutable sources (embedded patterns + startup
+// config), so it is safe to share across all flow executor instances.
+// ReplaceString is a pure read operation and is goroutine-safe.
+var (
+	sharedReplacer     anonymizer.Replacer
+	sharedReplacerOnce sync.Once
+	sharedReplacerErr  error
+)
+
 func NewFlowToolsExecutor(
 	db database.Querier,
 	cfg *config.Config,
@@ -354,25 +366,30 @@ func NewFlowToolsExecutor(
 	functions *Functions,
 	userID, flowID int64,
 ) (FlowToolsExecutor, error) {
-	allPatterns, err := patterns.LoadPatterns(patterns.PatternListTypeAll)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load all patterns: %v", err)
-	}
+	// Build the replacer exactly once for the lifetime of the process.
+	// cfg.GetSecretPatterns() reads environment variables that are fixed at
+	// startup, so the first caller's config is representative for all callers.
+	sharedReplacerOnce.Do(func() {
+		allPatterns, err := patterns.LoadPatterns(patterns.PatternListTypeAll)
+		if err != nil {
+			sharedReplacerErr = fmt.Errorf("failed to load all patterns: %v", err)
+			return
+		}
+		allPatterns.Patterns = append(allPatterns.Patterns, cfg.GetSecretPatterns()...)
+		sharedReplacer, sharedReplacerErr = anonymizer.NewReplacer(allPatterns.Regexes(), allPatterns.Names())
+	})
 
-	// combine with config secret patterns
-	allPatterns.Patterns = append(allPatterns.Patterns, cfg.GetSecretPatterns()...)
-
-	replacer, err := anonymizer.NewReplacer(allPatterns.Regexes(), allPatterns.Names())
-	if err != nil {
-		return nil, fmt.Errorf("failed to create replacer: %v", err)
+	if sharedReplacerErr != nil {
+		return nil, fmt.Errorf("failed to create replacer: %v", sharedReplacerErr)
 	}
 
 	return &flowToolsExecutor{
 		db:          db,
 		docker:      docker,
 		functions:   functions,
-		replacer:    replacer,
+		replacer:    sharedReplacer,
 		cfg:         cfg,
+		evidence:    newEvidenceReceiptRecorder(cfg.DataDir, flowID, cfg.EvidenceReceiptsEnabled),
 		flowID:      flowID,
 		userID:      userID,
 		definitions: make(map[string]llms.FunctionDefinition),
@@ -386,6 +403,7 @@ func (fte *flowToolsExecutor) SetUserID(userID int64) {
 
 func (fte *flowToolsExecutor) SetFlowID(flowID int64) {
 	fte.flowID = flowID
+	fte.evidence = newEvidenceReceiptRecorder(fte.cfg.DataDir, flowID, fte.cfg.EvidenceReceiptsEnabled)
 }
 
 func (fte *flowToolsExecutor) SetImage(image string) {
@@ -770,6 +788,7 @@ func (fte *flowToolsExecutor) GetCustomExecutor(cfg CustomExecutorConfig) (Conte
 		vslp:        fte.vslp,
 		db:          fte.db,
 		store:       fte.store,
+		evidence:    fte.evidence,
 		definitions: cfg.Definitions,
 		handlers:    cfg.Handlers,
 		barriers:    barriers,
@@ -1018,6 +1037,7 @@ func (fte *flowToolsExecutor) GetAssistantExecutor(cfg AssistantExecutorConfig) 
 		vslp:        fte.vslp,
 		db:          fte.db,
 		store:       fte.store,
+		evidence:    fte.evidence,
 		definitions: definitions,
 		handlers:    handlers,
 		barriers:    map[string]struct{}{},
@@ -1066,6 +1086,7 @@ func (fte *flowToolsExecutor) GetPrimaryExecutor(cfg PrimaryExecutorConfig) (Con
 		vslp:      fte.vslp,
 		db:        fte.db,
 		store:     fte.store,
+		evidence:  fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[FinalyToolName],
 			registryDefinitions[AdviceToolName],
@@ -1142,6 +1163,7 @@ func (fte *flowToolsExecutor) GetInstallerExecutor(cfg InstallerExecutorConfig) 
 		vslp:      fte.vslp,
 		db:        fte.db,
 		store:     fte.store,
+		evidence:  fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[MaintenanceResultToolName],
 			registryDefinitions[AdviceToolName],
@@ -1248,6 +1270,7 @@ func (fte *flowToolsExecutor) GetCoderExecutor(cfg CoderExecutorConfig) (Context
 		vslp:      fte.vslp,
 		db:        fte.db,
 		store:     fte.store,
+		evidence:  fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[CodeResultToolName],
 			registryDefinitions[AdviceToolName],
@@ -1371,6 +1394,7 @@ func (fte *flowToolsExecutor) GetPentesterExecutor(cfg PentesterExecutorConfig) 
 		vslp:      fte.vslp,
 		db:        fte.db,
 		store:     fte.store,
+		evidence:  fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[HackResultToolName],
 			registryDefinitions[AdviceToolName],
@@ -1476,6 +1500,7 @@ func (fte *flowToolsExecutor) GetSearcherExecutor(cfg SearcherExecutorConfig) (C
 		vslp:      fte.vslp,
 		db:        fte.db,
 		store:     fte.store,
+		evidence:  fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[SearchResultToolName],
 			registryDefinitions[MemoristToolName],
@@ -1640,14 +1665,15 @@ func (fte *flowToolsExecutor) GetGeneratorExecutor(cfg GeneratorExecutorConfig) 
 	)
 
 	ce := &customExecutor{
-		userID: fte.userID,
-		flowID: fte.flowID,
-		taskID: &cfg.TaskID,
-		mlp:    fte.mlp,
-		tclp:   fte.tclp,
-		vslp:   fte.vslp,
-		db:     fte.db,
-		store:  fte.store,
+		userID:   fte.userID,
+		flowID:   fte.flowID,
+		taskID:   &cfg.TaskID,
+		mlp:      fte.mlp,
+		tclp:     fte.tclp,
+		vslp:     fte.vslp,
+		db:       fte.db,
+		store:    fte.store,
+		evidence: fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[MemoristToolName],
 			registryDefinitions[SearchToolName],
@@ -1708,14 +1734,15 @@ func (fte *flowToolsExecutor) GetRefinerExecutor(cfg RefinerExecutorConfig) (Con
 	)
 
 	ce := &customExecutor{
-		userID: fte.userID,
-		flowID: fte.flowID,
-		taskID: &cfg.TaskID,
-		mlp:    fte.mlp,
-		tclp:   fte.tclp,
-		vslp:   fte.vslp,
-		db:     fte.db,
-		store:  fte.store,
+		userID:   fte.userID,
+		flowID:   fte.flowID,
+		taskID:   &cfg.TaskID,
+		mlp:      fte.mlp,
+		tclp:     fte.tclp,
+		vslp:     fte.vslp,
+		db:       fte.db,
+		store:    fte.store,
+		evidence: fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[MemoristToolName],
 			registryDefinitions[SearchToolName],
@@ -1781,6 +1808,7 @@ func (fte *flowToolsExecutor) GetMemoristExecutor(cfg MemoristExecutorConfig) (C
 		vslp:      fte.vslp,
 		db:        fte.db,
 		store:     fte.store,
+		evidence:  fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[MemoristResultToolName],
 			registryDefinitions[TerminalToolName],
@@ -1852,6 +1880,7 @@ func (fte *flowToolsExecutor) GetEnricherExecutor(cfg EnricherExecutorConfig) (C
 		vslp:      fte.vslp,
 		db:        fte.db,
 		store:     fte.store,
+		evidence:  fte.evidence,
 		definitions: []llms.FunctionDefinition{
 			registryDefinitions[EnricherResultToolName],
 			registryDefinitions[TerminalToolName],
@@ -1921,6 +1950,7 @@ func (fte *flowToolsExecutor) GetReporterExecutor(cfg ReporterExecutorConfig) (C
 		vslp:        fte.vslp,
 		db:          fte.db,
 		store:       fte.store,
+		evidence:    fte.evidence,
 		definitions: []llms.FunctionDefinition{registryDefinitions[ReportResultToolName]},
 		handlers:    map[string]ExecutorHandler{ReportResultToolName: cfg.ReportResult},
 		barriers:    map[string]struct{}{ReportResultToolName: {}},

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"sync"
 
@@ -48,8 +49,17 @@ func BuildProviderConfig(configData []byte) (*pconfig.ProviderConfig, error) {
 	return providerConfig, nil
 }
 
-func DefaultProviderConfig() (*pconfig.ProviderConfig, error) {
-	configData, err := configFS.ReadFile("config.yml")
+func DefaultProviderConfig(cfg *config.Config) (*pconfig.ProviderConfig, error) {
+	var (
+		configData []byte
+		err        error
+	)
+
+	if cfg.BedrockConfig == "" {
+		configData, err = configFS.ReadFile("config.yml")
+	} else {
+		configData, err = os.ReadFile(cfg.BedrockConfig)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -57,13 +67,53 @@ func DefaultProviderConfig() (*pconfig.ProviderConfig, error) {
 	return BuildProviderConfig(configData)
 }
 
-func DefaultModels() (pconfig.ModelsConfig, error) {
+func DefaultModels(cfg *config.Config) (pconfig.ModelsConfig, error) {
 	configData, err := configFS.ReadFile("models.yml")
 	if err != nil {
 		return nil, err
 	}
 
-	return pconfig.LoadModelsConfigData(configData)
+	models, err := pconfig.LoadModelsConfigData(configData)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg.BedrockModels == "" {
+		return models, nil
+	}
+
+	externalData, err := os.ReadFile(cfg.BedrockModels)
+	if err != nil {
+		return nil, err
+	}
+
+	externalModels, err := pconfig.LoadModelsConfigData(externalData)
+	if err != nil {
+		return nil, err
+	}
+
+	return mergeModels(models, externalModels), nil
+}
+
+// mergeModels returns base plus override; on a name collision the override entry wins.
+func mergeModels(base, override pconfig.ModelsConfig) pconfig.ModelsConfig {
+	indexByName := make(map[string]int, len(base))
+	merged := make(pconfig.ModelsConfig, len(base))
+	for i, m := range base {
+		indexByName[m.Name] = i
+		merged[i] = m
+	}
+
+	for _, m := range override {
+		if i, ok := indexByName[m.Name]; ok {
+			merged[i] = m
+		} else {
+			indexByName[m.Name] = len(merged)
+			merged = append(merged, m)
+		}
+	}
+
+	return merged
 }
 
 type bedrockProvider struct {
@@ -129,7 +179,7 @@ func New(
 
 	bclient := bedrockruntime.NewFromConfig(bcfg)
 
-	models, err := DefaultModels()
+	models, err := DefaultModels(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -195,9 +245,12 @@ func (p *bedrockProvider) Call(
 	opt pconfig.ProviderOptionsType,
 	prompt string,
 ) (string, error) {
+	ctx, options := p.providerConfig.PrepareAdaptiveCallOptions(
+		ctx, p.models, opt, p.providerConfig.GetOptionsForType(opt),
+	)
+
 	return provider.WrapGenerateFromSinglePrompt(
-		ctx, p, opt, p.llm, prompt,
-		p.providerConfig.GetOptionsForType(opt)...,
+		ctx, p, opt, p.llm, prompt, options...,
 	)
 }
 
@@ -223,10 +276,11 @@ func (p *bedrockProvider) CallEx(
 	// Clean tools from $schema field
 	tools = cleanToolSchemas(tools)
 
-	// Build final options: streaming + config + cleaned tools LAST (to override any dirty tools from config)
+	// Put cleaned tools after config to override any dirty tools restored from config.
 	options := []llms.CallOption{llms.WithStreamingFunc(streamCb)}
 	options = append(options, configOptions...)
 	options = append(options, llms.WithTools(tools))
+	ctx, options = p.providerConfig.PrepareAdaptiveCallOptions(ctx, p.models, opt, options)
 
 	return provider.WrapGenerateContent(ctx, p, opt, p.llm.GenerateContent, chain, options...)
 }
@@ -249,8 +303,9 @@ func (p *bedrockProvider) CallWithTools(
 
 	configOptions := p.providerConfig.GetOptionsForType(opt)
 
-	// Build final options: config + streaming + cleaned tools LAST (to override any dirty tools from config)
+	// Put cleaned tools after config to override any dirty tools restored from config.
 	options := append(configOptions, llms.WithStreamingFunc(streamCb), llms.WithTools(tools))
+	ctx, options = p.providerConfig.PrepareAdaptiveCallOptions(ctx, p.models, opt, options)
 
 	return provider.WrapGenerateContent(ctx, p, opt, p.llm.GenerateContent, chain, options...)
 }

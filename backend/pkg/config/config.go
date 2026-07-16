@@ -23,6 +23,9 @@ type Config struct {
 	DataDir     string `env:"DATA_DIR" envDefault:"./data"`
 	AskUser     bool   `env:"ASK_USER" envDefault:"false"`
 
+	// === Evidence Receipt Prototype ===
+	EvidenceReceiptsEnabled bool `env:"EVIDENCE_RECEIPTS_ENABLED" envDefault:"false"`
+
 	// === PentAGI Cloud Service Integration ===
 	InstallationID string `env:"INSTALLATION_ID"`
 	LicenseKey     string `env:"LICENSE_KEY"`
@@ -114,6 +117,8 @@ type Config struct {
 	BedrockSecretKey    string `env:"BEDROCK_SECRET_ACCESS_KEY"`
 	BedrockSessionToken string `env:"BEDROCK_SESSION_TOKEN"`
 	BedrockServerURL    string `env:"BEDROCK_SERVER_URL"`
+	BedrockConfig       string `env:"BEDROCK_CONFIG_PATH"`
+	BedrockModels       string `env:"BEDROCK_MODELS_PATH"`
 
 	// === LLM Provider: DeepSeek ===
 	DeepSeekAPIKey    string `env:"DEEPSEEK_API_KEY"`
@@ -134,6 +139,11 @@ type Config struct {
 	QwenAPIKey    string `env:"QWEN_API_KEY"`
 	QwenServerURL string `env:"QWEN_SERVER_URL" envDefault:"https://dashscope-us.aliyuncs.com/compatible-mode/v1"`
 	QwenProvider  string `env:"QWEN_PROVIDER"`
+
+	// === LLM Provider: MiniMax ===
+	MiniMaxAPIKey    string `env:"MINIMAX_API_KEY"`
+	MiniMaxServerURL string `env:"MINIMAX_SERVER_URL" envDefault:"https://api.minimax.io/v1"`
+	MiniMaxProvider  string `env:"MINIMAX_PROVIDER"`
 
 	// === Search Engine: DuckDuckGo ===
 	DuckDuckGoEnabled    bool   `env:"DUCKDUCKGO_ENABLED" envDefault:"true"`
@@ -322,6 +332,7 @@ func (c *Config) GetSecretPatterns() []patterns.Pattern {
 		{c.GLMAPIKey, "GLM Key"},
 		{c.KimiAPIKey, "Kimi Key"},
 		{c.QwenAPIKey, "Qwen Key"},
+		{c.MiniMaxAPIKey, "MiniMax Key"},
 		{c.GoogleAPIKey, "Google API Key"},
 		{c.GoogleCXKey, "Google CX Key"},
 		{c.OAuthGoogleClientID, "Google Client ID"},

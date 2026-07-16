@@ -630,8 +630,8 @@ github.com/vxcontrol/cloud v0.9.0 h1:p7xYTgUctbY8w6YfhugNzvfi3/0EQoZGumMe67keAng
 github.com/vxcontrol/cloud v0.9.0/go.mod h1:AeiQFqiMgJJAXy6FYXtDS2a3P/PMB56iiBNY2vGrZhQ=
 github.com/vxcontrol/graphiti-go-client v0.9.0 h1:3GxpFmQoHmz/d7/9tyEqD8+S99v2cuqG1UEmrbAFrLU=
 github.com/vxcontrol/graphiti-go-client v0.9.0/go.mod h1:6UHL5uqAKp4KAdziva4qgcAxFtBzU05Hm/BAo4NkAuo=
-github.com/vxcontrol/langchaingo v0.1.14-update.5 h1:QIib3znyGg/YnRSRB3ZMxwwfRE2vy+xZ2gDH6zwj9fk=
-github.com/vxcontrol/langchaingo v0.1.14-update.5/go.mod h1:fJal4XqJsYXRFTbAPJpwcJdztea9+1174fSDYacgctU=
+github.com/vxcontrol/langchaingo v0.1.15-0.20260621133759-91d8dfdd9c89 h1:voo1O4CrwWnWxiHDbkpSugMMZtzB3nDda10Ligesz5k=
+github.com/vxcontrol/langchaingo v0.1.15-0.20260621133759-91d8dfdd9c89/go.mod h1:fJal4XqJsYXRFTbAPJpwcJdztea9+1174fSDYacgctU=
 github.com/wasilibs/go-re2 v1.10.0 h1:vQZEBYZOCA9jdBMmrO4+CvqyCj0x4OomXTJ4a5/urQ0=
 github.com/wasilibs/go-re2 v1.10.0/go.mod h1:k+5XqO2bCJS+QpGOnqugyfwC04nw0jaglmjrrkG8U6o=
 github.com/wasilibs/wazero-helpers v0.0.0-20240620070341-3dff1577cd52 h1:OvLBa8SqJnZ6P+mjlzc2K7PM22rRUPE1x32G9DTPrC4=

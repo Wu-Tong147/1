@@ -72,7 +72,7 @@ You can watch the video **PentAGI overview**:
 - Persistent Storage. All commands and outputs are stored in PostgreSQL with [pgvector](https://hub.docker.com/r/vxcontrol/pgvector) extension.
 - Scalable Architecture. Microservices-based design supporting horizontal scaling.
 - Self-Hosted Solution. Complete control over your deployment and data.
-- Flexible Authentication. Support for 10+ LLM providers ([OpenAI](https://platform.openai.com/), [Anthropic](https://www.anthropic.com/), [Google AI/Gemini](https://ai.google.dev/), [AWS Bedrock](https://aws.amazon.com/bedrock/), [Ollama](https://ollama.com/), [DeepSeek](https://www.deepseek.com/en/), [GLM](https://z.ai/), [Kimi](https://platform.moonshot.ai/), [Qwen](https://www.alibabacloud.com/en/), Custom) plus aggregators ([OpenRouter](https://openrouter.ai/), [DeepInfra](https://deepinfra.com/)). For production local deployments, see our [vLLM + Qwen3.5-27B-FP8 guide](examples/guides/vllm-qwen35-27b-fp8.md).
+- Flexible Authentication. Support for 10+ LLM providers ([OpenAI](https://platform.openai.com/), [Anthropic](https://www.anthropic.com/), [Google AI/Gemini](https://ai.google.dev/), [AWS Bedrock](https://aws.amazon.com/bedrock/), [Ollama](https://ollama.com/), [DeepSeek](https://www.deepseek.com/en/), [GLM](https://z.ai/), [Kimi](https://platform.moonshot.ai/), [Qwen](https://www.alibabacloud.com/en/), [MiniMax](https://www.minimax.io/), Custom) plus aggregators ([OpenRouter](https://openrouter.ai/), [DeepInfra](https://deepinfra.com/), [Atlas Cloud](https://www.atlascloud.ai/)). For production local deployments, see our [vLLM + Qwen3.5-27B-FP8 guide](examples/guides/vllm-qwen35-27b-fp8.md).
 - API Token Authentication. Secure Bearer token system for programmatic access to REST and GraphQL APIs.
 - Quick Deployment. Easy setup through [Docker Compose](https://docs.docker.com/compose/) with comprehensive environment configuration.
 
@@ -569,6 +569,11 @@ The system uses Docker containers for isolation and easy deployment, with separa
 
 ## Quick Start
 
+For a step-by-step walkthrough that connects installation, configuration, LLM
+and embedding provider testing, and your first login, see the
+[Installing and Configuring PentAGI](examples/guides/installation_configuration.md)
+guide. The sections below remain the detailed reference for each step.
+
 ### System Requirements
 
 - Docker and Docker Compose (or Podman - see [Podman configuration](#running-pentagi-with-podman))
@@ -585,6 +590,8 @@ PentAGI provides an interactive installer with a terminal-based UI for streamlin
 - **Linux**: amd64 [download](https://pentagi.com/downloads/linux/amd64/installer-latest.zip) | arm64 [download](https://pentagi.com/downloads/linux/arm64/installer-latest.zip)
 - **Windows**: amd64 [download](https://pentagi.com/downloads/windows/amd64/installer-latest.zip)
 - **macOS**: amd64 (Intel) [download](https://pentagi.com/downloads/darwin/amd64/installer-latest.zip) | arm64 (M-series) [download](https://pentagi.com/downloads/darwin/arm64/installer-latest.zip)
+
+> **macOS security warning:** If macOS flags a downloaded installer, use only the official PentAGI links above, choose the archive that matches your CPU architecture, verify the source before continuing, and follow the [installer troubleshooting guide](backend/docs/installer/installer-troubleshooting.md#macos-reports-the-installer-as-malware) before allowing the app to run.
 
 **Quick Installation (Linux amd64):**
 
@@ -1392,6 +1399,25 @@ The `LLM_SERVER_PRESERVE_REASONING` setting controls whether reasoning content i
 
 This setting is required by some LLM providers (e.g., Moonshot) that return errors like "thinking is enabled but reasoning_content is missing in assistant tool call message" when reasoning content is not included in multi-turn conversations. Enable this setting if your provider requires reasoning content to be preserved.
 
+#### Troubleshooting: tool-call (function-call) parser errors
+
+PentAGI drives its agents with tool calls (also called function calls), so any custom OpenAI-compatible backend configured through `LLM_SERVER_*` must return valid tool-call JSON in the format the OpenAI Chat Completions API defines. When the backend emits malformed, truncated, or non-conforming tool-call arguments, the agent chain cannot continue.
+
+Self-hosted engines such as llama.cpp, SGLang, and vLLM usually require a specific tool-call parser and a matching chat template to produce correct tool-call output. If the parser is missing or mismatched for the model you are serving, tool-call arguments can come back corrupted. Compatibility therefore depends on the backend's tool-call/function-call behavior and configuration, not on PentAGI alone; not every llama.cpp or SGLang setup produces valid tool calls out of the box.
+
+Typical symptoms:
+
+- Backend or proxy errors such as `Failed to parse tool call arguments as JSON` (often surfaced through a LiteLLM proxy as an HTTP 500), or other unexpected 5xx/4xx responses from the LLM endpoint.
+- A flow that runs for a few steps and then stops responding to new input in the UI.
+- Repeated or looping tool calls that never converge.
+
+How to investigate:
+
+1. Check both sides of the connection: the PentAGI logs (`docker compose logs -f pentagi`) and the inference backend or proxy logs (llama.cpp, SGLang, vLLM, or LiteLLM). The backend log usually shows the same parse error when it produced the malformed tool call.
+2. Validate the provider before running a full flow with the `ctester` utility, which exercises tool-calling agent types directly. See [Testing LLM Agents](https://github.com/vxcontrol/pentagi#testing-llm-agents).
+3. Confirm the backend's tool-call parser and chat template are the ones recommended for the model you are serving, and that the model itself supports tool calling.
+4. Update PentAGI to the latest build. Recent versions sanitize malformed function-call arguments returned by the model so a single bad response no longer stalls the whole flow; older builds forwarded the corrupted arguments and could get stuck.
+
 ### Ollama Provider Configuration
 
 PentAGI supports Ollama for both local LLM inference (zero-cost, enhanced privacy) and Ollama Cloud (managed service with free tier).
@@ -1702,12 +1728,14 @@ PROXY_URL=http://your-proxy:8080
 
 #### Supported Models
 
-PentAGI supports 10 Claude models with tool calling, streaming, extended thinking, adaptive thinking, and prompt caching. Models marked with `*` are used in default configuration.
+PentAGI supports 11 Claude models with tool calling, streaming, extended thinking, adaptive thinking, and prompt caching. Models marked with `*` are used in default configuration.
 
 **Claude 4 Series - Latest Models (2025-2026)**
 
 | Model ID                 | Thinking | Release Date | Price (Input/Output/Cache R/W) | Use Case                                        |
 | ------------------------ | -------- | ------------ | ------------------------------ | ----------------------------------------------- |
+| `claude-opus-4-8`        | ✅        | May 2026     | $5.00/$25.00/$0.50/$6.25       | Flagship for coding, agents, and deep reasoning. Adaptive thinking only — budget thinking and sampling params (temperature/top_p/top_k) are rejected. Most demanding exploit development and multi-stage attack simulation |
+| `claude-opus-4-7`        | ✅        | Apr 2026     | $5.00/$25.00/$0.50/$6.25       | Advanced software engineering and long-running agentic security analysis. Adaptive thinking only (manual budget thinking rejected) |
 | `claude-opus-4-6`*       | ✅        | May 2025     | $5.00/$25.00/$0.50/$6.25       | Most intelligent model for autonomous agents and coding. Extended + adaptive thinking for complex exploit development, multi-stage attack simulation |
 | `claude-sonnet-4-6`*     | ✅        | Aug 2025     | $3.00/$15.00/$0.30/$3.75       | Best speed/intelligence balance with adaptive thinking. Multi-phase security assessments, intelligent vulnerability analysis, real-time threat hunting |
 | `claude-haiku-4-5`*      | ✅        | Oct 2025     | $1.00/$5.00/$0.10/$1.25        | Fastest model with near-frontier intelligence. High-frequency scanning, real-time monitoring, bulk automated testing |
@@ -1738,7 +1766,7 @@ PentAGI supports 10 Claude models with tool calling, streaming, extended thinkin
 
 **Key Features**:
 - **Extended Thinking**: All Claude 4.5+ and 4.6 models with configurable chain-of-thought reasoning depths for complex security analysis
-- **Adaptive Thinking**: Claude 4.6 series (Opus/Sonnet) dynamically adjusts reasoning depth based on task complexity for optimal performance
+- **Adaptive Thinking**: Claude 4.6 series (Opus/Sonnet) dynamically adjusts reasoning depth based on task complexity; Claude Opus 4.7/4.8 are adaptive-thinking-only (manual budget thinking and sampling parameters are rejected with HTTP 400)
 - **Prompt Caching**: Significant cost reduction with separate read/write pricing (10% read, 125% write of input)
 - **Extended Context Window**: 200K tokens standard, up to 1M tokens (beta) for Claude Opus/Sonnet 4.6 for comprehensive codebase analysis
 - **Tool Calling**: Robust function calling with exceptional accuracy for security tool orchestration
@@ -1852,6 +1880,8 @@ PentAGI integrates with Amazon Bedrock, offering access to 20+ foundation models
 | `BEDROCK_SECRET_ACCESS_KEY` |             | AWS secret access key for static credentials                                                        |
 | `BEDROCK_SESSION_TOKEN`     |             | AWS session token for temporary credentials (optional, used with static credentials)                |
 | `BEDROCK_SERVER_URL`        |             | Custom Bedrock endpoint (VPC endpoints, local testing)                                              |
+| `BEDROCK_CONFIG_PATH`       |             | Path to a YAML config that replaces the built-in per-agent model/price config                       |
+| `BEDROCK_MODELS_PATH`       |             | Path to a YAML model catalog merged onto the built-in models (adds/overrides the UI model list)     |
 
 **Authentication Priority**: `BEDROCK_DEFAULT_AUTH` → `BEDROCK_BEARER_TOKEN` → `BEDROCK_ACCESS_KEY_ID`+`BEDROCK_SECRET_ACCESS_KEY`
 
@@ -1878,9 +1908,29 @@ BEDROCK_SERVER_URL=https://bedrock-runtime.us-east-1.vpce-xxx.amazonaws.com
 PROXY_URL=http://your-proxy:8080
 ```
 
+#### Custom Provider Config and Models (advanced)
+
+By default the Bedrock provider uses a per-agent config and model catalog compiled into the binary. Two optional paths override them without rebuilding:
+
+- `BEDROCK_CONFIG_PATH` — a YAML file (same shape as the other provider configs) that **replaces** the built-in per-agent model/price assignments. See [`examples/configs/bedrock-glm-flash.provider.yml`](examples/configs/bedrock-glm-flash.provider.yml).
+- `BEDROCK_MODELS_PATH` — a YAML model catalog that is **merged** onto the built-in models: new model ids are added and become selectable under Settings → Providers, while a matching id overrides the built-in entry. See [`examples/configs/bedrock-glm-flash.models.yml`](examples/configs/bedrock-glm-flash.models.yml).
+
+This is useful to expose a Bedrock model newer than the compiled-in catalog — for example Z.AI's `zai.glm-4.7-flash`. Use the exact Model ID from the model's AWS Bedrock detail page; add a `us.`/`eu.`/`apac.` inference-profile prefix only when that page marks the model as requiring cross-region inference (`zai.glm-4.7-flash` is In-Region, so it is used as-is, with no prefix).
+
+With Docker Compose, set the host-side mount source and the in-container path together:
+
+```bash
+# host files mounted into the container
+PENTAGI_BEDROCK_CONFIG_PATH=./examples/configs/bedrock-glm-flash.provider.yml
+PENTAGI_BEDROCK_MODELS_PATH=./examples/configs/bedrock-glm-flash.models.yml
+# tell the backend to read the mounted files
+BEDROCK_CONFIG_PATH=/opt/pentagi/conf/bedrock.provider.yml
+BEDROCK_MODELS_PATH=/opt/pentagi/conf/bedrock.models.yml
+```
+
 #### Supported Models
 
-PentAGI supports 21 AWS Bedrock models with tool calling, streaming, and multimodal capabilities. Models marked with `*` are used in default configuration.
+PentAGI supports 24 AWS Bedrock models with tool calling, streaming, and multimodal capabilities. Models marked with `*` are used in default configuration.
 
 | Model ID                                         | Provider        | Thinking | Multimodal | Price (Input/Output) | Use Case                                |
 | ------------------------------------------------ | --------------- | -------- | ---------- | -------------------- | --------------------------------------- |
@@ -1889,6 +1939,8 @@ PentAGI supports 21 AWS Bedrock models with tool calling, streaming, and multimo
 | `us.amazon.nova-pro-v1:0`                        | Amazon Nova     | ❌        | ✅          | $0.80/$3.20          | Balanced accuracy, speed, cost          |
 | `us.amazon.nova-lite-v1:0`                       | Amazon Nova     | ❌        | ✅          | $0.06/$0.24          | Fast processing, high-volume operations |
 | `us.amazon.nova-micro-v1:0`                      | Amazon Nova     | ❌        | ❌          | $0.035/$0.14         | Ultra-low latency, real-time monitoring |
+| `us.anthropic.claude-opus-4-8`                   | Anthropic       | ✅        | ✅          | $5.00/$25.00         | Flagship coding/agents/deep reasoning; adaptive thinking only (sampling params rejected) |
+| `us.anthropic.claude-opus-4-7`                   | Anthropic       | ✅        | ✅          | $5.00/$25.00         | Advanced engineering, long-running agents; adaptive thinking only |
 | `us.anthropic.claude-opus-4-6-v1`*               | Anthropic       | ✅        | ✅          | $5.00/$25.00         | World-class coding, enterprise agents   |
 | `us.anthropic.claude-sonnet-4-6`                 | Anthropic       | ✅        | ✅          | $3.00/$15.00         | Frontier intelligence, enterprise scale |
 | `us.anthropic.claude-opus-4-5-20251101-v1:0`     | Anthropic       | ✅        | ✅          | $5.00/$25.00         | Multi-day software development          |
@@ -2389,6 +2441,43 @@ EMBEDDING_STRIP_NEW_LINES=    # optional, default applies
 
 **As OpenAI-typed custom LLM provider**: instead of the dedicated `QWEN_*` variables, you can wire any Qwen chat model through PentAGI's custom OpenAI-compatible provider by pointing `OPENAI_SERVER_URL` (or a custom provider entry) to the DashScope `/compatible-mode/v1` endpoint and selecting the desired Qwen model name. Useful when you already manage all model traffic through a single OpenAI-shaped client (e.g. shared with LiteLLM/OneAPI proxies).
 
+### MiniMax Provider Configuration
+
+PentAGI integrates with MiniMax's M-series through the OpenAI-compatible `https://api.minimax.io/v1` endpoint: large-context agentic models with tool calling, JSON output, and streaming.
+
+#### Configuration Variables
+
+| Variable             | Default Value               | Description                                        |
+| -------------------- | --------------------------- | -------------------------------------------------- |
+| `MINIMAX_API_KEY`    |                             | MiniMax API key for authentication                 |
+| `MINIMAX_SERVER_URL` | `https://api.minimax.io/v1` | MiniMax API endpoint URL                           |
+| `MINIMAX_PROVIDER`   |                             | Provider prefix for LiteLLM integration (optional) |
+
+#### Configuration Examples
+
+```bash
+# Direct API usage
+MINIMAX_API_KEY=your_minimax_api_key
+MINIMAX_SERVER_URL=https://api.minimax.io/v1
+
+# With LiteLLM proxy
+MINIMAX_API_KEY=your_litellm_key
+MINIMAX_SERVER_URL=http://litellm-proxy:4000
+MINIMAX_PROVIDER=minimax  # Adds prefix to model names (minimax/MiniMax-M3) for LiteLLM
+```
+
+#### Supported Models
+
+PentAGI ships 3 MiniMax models with tool calling, JSON output, and streaming. `MiniMax-M3` is the default for all agent types.
+
+| Model ID                 | Context | Price (Input/Output) | Use Case                                                                                            |
+| ------------------------ | ------- | -------------------- | --------------------------------------------------------------------------------------------------- |
+| `MiniMax-M3`*            | ~1M     | $0.60/$2.40          | Latest flagship for agentic reasoning, tool use, code generation, and long-context tasks (default)  |
+| `MiniMax-M2.7`           | 204K    | $0.40/$1.10          | Previous-generation model with strong reasoning and coding                                          |
+| `MiniMax-M2.7-highspeed` | 204K    | $0.40/$1.10          | Low-latency variant of M2.7 for fast-response scenarios                                             |
+
+**LiteLLM Integration**: Set `MINIMAX_PROVIDER=minimax` to enable model name prefixing when using default PentAGI configurations with LiteLLM proxy. Leave empty for direct API usage.
+
 ## Advanced Setup
 
 ### Langfuse Integration
@@ -2670,6 +2759,21 @@ On Linux, this is typically configured in `/etc/docker/daemon.json`. On Docker D
 
 See the official Docker documentation for [registry mirrors](https://docs.docker.com/docker-hub/image-library/mirror/) and [daemon proxy configuration](https://docs.docker.com/engine/daemon/proxy/).
 
+#### Troubleshooting: "failed to select primary docker image via llm call"
+
+A flow that fails immediately with `failed to select primary docker image via llm call` usually indicates a problem with the configured LLM backend, not with Docker or the image registry. Older PentAGI versions reported the same failure as `failed to get primary docker image`, which led users to debug Docker even though the registry was healthy.
+
+When a flow starts, PentAGI makes its first LLM call to choose the primary Docker image for the task. This image-selection call runs through the `simple` agent type, so a failure here points at the model assigned to that agent type rather than at Docker. A message such as `API returned unexpected status code: 502` or `404` in this context is returned by the LLM backend, not by Docker Hub.
+
+This is distinct from the registry reachability problems described above: if Docker pulls succeed and the Compose stack starts, but flow creation still fails at image selection, investigate the LLM backend rather than Docker.
+
+To diagnose:
+
+1. Check PentAGI logs first: `docker logs pentagi`.
+2. Check the logs of your configured LLM backend (the server behind your provider or `LLM_SERVER_URL`).
+3. Verify that the base URL, API key, and model name in [Custom LLM Provider Configuration](#custom-llm-provider-configuration) are correct and reachable from the container. If you assign different models per agent type, check the model used by the `simple` agent type, since image selection runs through it.
+4. For custom, OpenAI-compatible, vLLM, or SGLang backends, confirm that the model supports tool calling (function calling) and that the matching tool-call parser is enabled. A missing or mismatched tool-call parser is a known cause of this failure.
+
 ## Development
 
 ### Development Requirements
@@ -2678,7 +2782,6 @@ See the official Docker documentation for [registry mirrors](https://docs.docker
 - nodejs
 - docker
 - postgres
-- commitlint
 
 ### Environment Setup
 
@@ -2960,10 +3063,10 @@ docker exec -it pentagi /opt/pentagi/bin/ctester -config /opt/pentagi/conf/ollam
 To use these configurations, your `.env` file only needs to contain:
 
 ```
-LLM_SERVER_URL=https://openrouter.ai/api/v1      # or https://api.deepinfra.com/v1/openai or https://api.openai.com/v1 or https://api.novita.ai/openai
+LLM_SERVER_URL=https://openrouter.ai/api/v1      # or https://api.deepinfra.com/v1/openai or https://api.openai.com/v1 or https://api.novita.ai/openai or https://api.atlascloud.ai/v1
 LLM_SERVER_KEY=your_api_key
 LLM_SERVER_MODEL=                                # Leave empty, as models are specified in the config
-LLM_SERVER_CONFIG_PATH=/opt/pentagi/conf/openrouter.provider.yml  # or deepinfra.provider.ymll or custom-openai.provider.yml or novita.provider.yml
+LLM_SERVER_CONFIG_PATH=/opt/pentagi/conf/openrouter.provider.yml  # or deepinfra.provider.yml or custom-openai.provider.yml or novita.provider.yml or atlas.provider.yml
 LLM_SERVER_PROVIDER=                             # Provider name for LiteLLM proxy (e.g., openrouter, deepseek, moonshot, novita)
 LLM_SERVER_LEGACY_REASONING=false                # Controls reasoning format, for OpenAI must be true (default: false)
 LLM_SERVER_PRESERVE_REASONING=false              # Preserve reasoning content in multi-turn conversations (required by Moonshot, default: false)
@@ -3388,6 +3491,35 @@ Flow deletion removes the flow from normal queries through PentAGI's soft-delete
 4. **Missing API keys**: Check environment variables for your chosen embedding provider
 
 </details>
+
+### Troubleshooting: Flow Stalls or Hangs Without Progress
+
+If a flow starts but then appears to wait indefinitely with no subtasks progressing, a common cause is an embedding provider that is misconfigured or unreachable. PentAGI uses the embedding provider to store and search vector memory while a flow runs, so embedding calls that fail or hang can leave a flow waiting instead of advancing.
+
+**1. Check the container logs first.** Embedding errors surface in the PentAGI logs:
+
+```bash
+docker logs pentagi
+```
+
+Look for embedding-related failures such as authentication errors (401/403), wrong-model or not-found errors (404), connection timeouts, or TLS certificate errors. These point at the embedding provider configuration rather than at the flow itself.
+
+**2. Validate the provider with etester.** The [Embedding Tester Utility (etester)](#embedding-tester-utility-etester) checks both the embedding provider and the database connection without starting a flow:
+
+```bash
+docker exec -it pentagi /opt/pentagi/bin/etester test -verbose
+```
+
+A failing `test` confirms the problem is in the embedding configuration rather than in the flow.
+
+**3. Verify the configuration.** Check the following in your `.env` file against the [Supported Embedding Providers](#supported-embedding-providers) list and each provider's documented limitations:
+
+- `EMBEDDING_PROVIDER` is one of the supported providers (default `openai`).
+- `EMBEDDING_MODEL` is a valid model name for that provider.
+- `EMBEDDING_URL` and `EMBEDDING_KEY` are correct for the provider. If both are left empty, PentAGI falls back to the matching LLM provider settings (for example `OPEN_AI_KEY` and `OPEN_AI_SERVER_URL` when `EMBEDDING_PROVIDER=openai`), so a missing or wrong key there can break embeddings too.
+- The endpoint is reachable from inside the container. If outbound calls go through a proxy, confirm `PROXY_URL` is set; if calls hang rather than fail quickly, `HTTP_CLIENT_TIMEOUT` controls how long PentAGI waits on the provider before giving up.
+
+> **Changing provider?** If you switch embedding providers after data has already been indexed, run `flush` or `reindex` with etester so old and new vectors are not mixed. See [Why Consistent Embedding Providers Matter](#why-consistent-embedding-providers-matter) above.
 
 ## Function Testing with ftester
 
