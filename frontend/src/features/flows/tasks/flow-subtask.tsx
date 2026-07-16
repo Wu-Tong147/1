@@ -5,6 +5,7 @@ import type { SubtaskFragmentFragment } from '@/graphql/types';
 
 import Markdown from '@/components/shared/markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { uiT } from '@/lib/i18n';
 
 import FlowTaskStatusIcon from './flow-task-status-icon';
 
@@ -82,7 +83,7 @@ function FlowSubtask({ searchValue = '', subtask }: FlowSubtaskProps) {
                             className="cursor-pointer hover:underline"
                             onClick={() => setIsDetailsVisible(!isDetailsVisible)}
                         >
-                            {isDetailsVisible ? 'Hide details' : 'Show details'}
+                            {isDetailsVisible ? uiT('Hide details') : uiT('Show details')}
                         </div>
                         {isDetailsVisible && (
                             <div className="mt-4 flex flex-col gap-4">
@@ -108,7 +109,7 @@ function FlowSubtask({ searchValue = '', subtask }: FlowSubtaskProps) {
                                     <Card>
                                         <CardHeader className="p-3">
                                             <CardTitle className="flex items-center gap-2">
-                                                <ListCheck className="size-4 shrink-0" /> Result
+                                                <ListCheck className="size-4 shrink-0" /> {uiT('Result')}
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent className="p-3 pt-0">

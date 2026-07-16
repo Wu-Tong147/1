@@ -33,6 +33,7 @@ import {
     useTerminalLogAddedSubscription,
     useVectorStoreLogAddedSubscription,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { Log } from '@/lib/log';
 
 interface FlowContextValue {
@@ -177,7 +178,7 @@ export function FlowProvider({ children }: FlowProviderProps) {
         if (flowError) {
             const raw = flowError.message ?? '';
             const isNotFound = /no rows in result set|not found/i.test(raw);
-            toast.error(isNotFound ? 'Flow not found' : 'Failed to load flow', {
+            toast.error(isNotFound ? uiT('Flow not found') : uiT('Failed to load flow'), {
                 description: isNotFound ? undefined : raw || undefined,
                 id: 'flow-load-error',
             });
@@ -204,8 +205,8 @@ export function FlowProvider({ children }: FlowProviderProps) {
                 });
             } catch (error) {
                 const description =
-                    error instanceof Error ? error.message : 'An error occurred while submitting message';
-                toast.error('Failed to submit message', {
+                    error instanceof Error ? error.message : uiT('An error occurred while submitting message');
+                toast.error(uiT('Failed to submit message'), {
                     description,
                 });
                 Log.error('Error submitting message:', error);
@@ -226,8 +227,8 @@ export function FlowProvider({ children }: FlowProviderProps) {
                 },
             });
         } catch (error) {
-            const description = error instanceof Error ? error.message : 'An error occurred while stopping flow';
-            toast.error('Failed to stop flow', {
+            const description = error instanceof Error ? error.message : uiT('An error occurred while stopping flow');
+            toast.error(uiT('Failed to stop flow'), {
                 description,
             });
             Log.error('Error stopping flow:', error);
@@ -265,8 +266,8 @@ export function FlowProvider({ children }: FlowProviderProps) {
                 }
             } catch (error) {
                 const description =
-                    error instanceof Error ? error.message : 'An error occurred while creating assistant';
-                toast.error('Failed to create assistant', {
+                    error instanceof Error ? error.message : uiT('An error occurred while creating assistant');
+                toast.error(uiT('Failed to create assistant'), {
                     description,
                 });
                 Log.error('Error creating assistant:', error);
@@ -297,8 +298,8 @@ export function FlowProvider({ children }: FlowProviderProps) {
                 });
             } catch (error) {
                 const description =
-                    error instanceof Error ? error.message : 'An error occurred while calling assistant';
-                toast.error('Failed to call assistant', {
+                    error instanceof Error ? error.message : uiT('An error occurred while calling assistant');
+                toast.error(uiT('Failed to call assistant'), {
                     description,
                 });
                 Log.error('Error calling assistant:', error);
@@ -322,8 +323,8 @@ export function FlowProvider({ children }: FlowProviderProps) {
                 });
             } catch (error) {
                 const description =
-                    error instanceof Error ? error.message : 'An error occurred while stopping assistant';
-                toast.error('Failed to stop assistant', {
+                    error instanceof Error ? error.message : uiT('An error occurred while stopping assistant');
+                toast.error(uiT('Failed to stop assistant'), {
                     description,
                 });
                 Log.error('Error stopping assistant:', error);
@@ -356,8 +357,8 @@ export function FlowProvider({ children }: FlowProviderProps) {
                 }
             } catch (error) {
                 const description =
-                    error instanceof Error ? error.message : 'An error occurred while deleting assistant';
-                toast.error('Failed to delete assistant', {
+                    error instanceof Error ? error.message : uiT('An error occurred while deleting assistant');
+                toast.error(uiT('Failed to delete assistant'), {
                     description,
                 });
                 Log.error('Error deleting assistant:', error);

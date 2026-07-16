@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import type { FileNode } from '@/components/shared/file-manager';
 
 import { useFlowFilesQuery } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 
 import { toFileNode } from './flow-files-utils';
 
@@ -41,7 +42,7 @@ export function useFlowFilesData({ flowId }: UseFlowFilesDataParams): UseFlowFil
 
     useEffect(() => {
         if (flowFilesError) {
-            toast.error('Failed to load files', {
+            toast.error(uiT('Failed to load files'), {
                 description: flowFilesError.message,
                 id: FLOW_FILES_ERROR_TOAST_ID,
             });

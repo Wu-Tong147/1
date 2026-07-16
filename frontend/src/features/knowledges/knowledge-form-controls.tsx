@@ -18,6 +18,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { InputGroup, InputGroupTextareaAutosize } from '@/components/ui/input-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { KnowledgeAnswerType, KnowledgeDocType, KnowledgeGuideType } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 
 import type { FormValues } from './knowledge-form';
 
@@ -94,7 +95,7 @@ export function KnowledgeContentField({
             name="content"
             render={({ field }) => (
                 <FormItem className={fillParent ? 'flex min-h-0 flex-1 flex-col' : undefined}>
-                    {showLabel ? <FormLabel>Content</FormLabel> : null}
+                    {showLabel ? <FormLabel>{uiT('Content')}</FormLabel> : null}
                     <FormControl>
                         <MarkdownEditor
                             className={fillParent ? 'min-h-0 flex-1' : 'min-h-[280px]'}
@@ -102,7 +103,7 @@ export function KnowledgeContentField({
                             disabled={isSaving}
                             onBlur={field.onBlur}
                             onChange={field.onChange}
-                            placeholder="Knowledge content (will be embedded into the vector store)"
+                            placeholder={uiT('Knowledge content (will be embedded into the vector store)')}
                             value={field.value}
                         />
                     </FormControl>
@@ -149,7 +150,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                     name="docType"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Document type</FormLabel>
+                            <FormLabel>{uiT('Document type')}</FormLabel>
                             <Select
                                 disabled={isSaving}
                                 onValueChange={(value) =>
@@ -159,7 +160,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                             >
                                 <FormControl>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
+                                        <SelectValue placeholder={uiT('Select type')} />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -184,7 +185,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                         name="guideType"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Guide type</FormLabel>
+                                <FormLabel>{uiT('Guide type')}</FormLabel>
                                 <Select
                                     disabled={isSaving}
                                     onValueChange={field.onChange}
@@ -192,7 +193,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                                 >
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select guide type" />
+                                            <SelectValue placeholder={uiT('Select guide type')} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -218,7 +219,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                         name="answerType"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Answer type</FormLabel>
+                                <FormLabel>{uiT('Answer type')}</FormLabel>
                                 <Select
                                     disabled={isSaving}
                                     onValueChange={field.onChange}
@@ -226,7 +227,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                                 >
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select answer type" />
+                                            <SelectValue placeholder={uiT('Select answer type')} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -252,7 +253,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                         name="codeLang"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Code language</FormLabel>
+                                <FormLabel>{uiT('Code language')}</FormLabel>
                                 {/*
                                  * `Autocomplete` is a free-text input with a
                                  * suggestion popover — the backend accepts any
@@ -274,7 +275,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                                         />
                                     </FormControl>
                                     <AutocompleteContent>
-                                        <AutocompleteEmpty>No matching language</AutocompleteEmpty>
+                                        <AutocompleteEmpty>{uiT('No matching language')}</AutocompleteEmpty>
                                         <AutocompleteGroup>
                                             {LANGUAGES.map((lang) => (
                                                 <AutocompleteItem
@@ -299,7 +300,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                 name="question"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Question</FormLabel>
+                        <FormLabel>{uiT('Question')}</FormLabel>
                         <FormControl>
                             <InputGroup className="block">
                                 <InputGroupTextareaAutosize
@@ -310,7 +311,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                                     maxLength={KNOWLEDGE_LIMITS.question}
                                     maxRows={6}
                                     minRows={1}
-                                    placeholder="Short title or question this document answers"
+                                    placeholder={uiT('Short title or question this document answers')}
                                 />
                             </InputGroup>
                         </FormControl>
@@ -324,7 +325,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                 name="description"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Description (optional)</FormLabel>
+                        <FormLabel>{uiT('Description (optional)')}</FormLabel>
                         <FormControl>
                             <InputGroup className="block">
                                 <InputGroupTextareaAutosize
@@ -334,7 +335,7 @@ export function KnowledgeMetaFields({ control, isNew, isSaving }: KnowledgeMetaF
                                     maxLength={KNOWLEDGE_LIMITS.description}
                                     maxRows={8}
                                     minRows={1}
-                                    placeholder="Optional short description"
+                                    placeholder={uiT('Optional short description')}
                                 />
                             </InputGroup>
                         </FormControl>

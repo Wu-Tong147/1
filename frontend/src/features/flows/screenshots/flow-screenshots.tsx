@@ -10,6 +10,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { Form, FormControl, FormField } from '@/components/ui/form';
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group';
 import { useAutoScroll } from '@/hooks/use-auto-scroll';
+import { uiT } from '@/lib/i18n';
 import { useFlow } from '@/providers/flow-provider';
 
 import FlowScreenshot from './flow-screenshot';
@@ -97,7 +98,7 @@ function FlowScreenshots() {
                                         <InputGroupInput
                                             {...field}
                                             autoComplete="off"
-                                            placeholder="Search screenshots..."
+                                            placeholder={uiT('Search screenshots...')}
                                             type="text"
                                         />
                                         {field.value && (
@@ -158,8 +159,10 @@ function FlowScreenshots() {
                         <EmptyMedia variant="icon">
                             <Camera />
                         </EmptyMedia>
-                        <EmptyTitle>No screenshots available</EmptyTitle>
-                        <EmptyDescription>Screenshots will appear here once the agent captures them</EmptyDescription>
+                        <EmptyTitle>{uiT('No screenshots available')}</EmptyTitle>
+                        <EmptyDescription>
+                            {uiT('Screenshots will appear here once the agent captures them')}
+                        </EmptyDescription>
                     </EmptyHeader>
                 </Empty>
             )}

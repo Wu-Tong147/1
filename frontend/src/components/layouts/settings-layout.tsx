@@ -17,6 +17,7 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { uiT } from '@/lib/i18n';
 
 export interface MenuItem {
     icon?: React.ReactNode;
@@ -35,19 +36,19 @@ const menuItems: readonly MenuItem[] = [
         icon: <Plug className="size-4" />,
         id: 'providers',
         path: '/settings/providers',
-        title: 'Providers',
+        title: uiT('Providers'),
     },
     {
         icon: <FileText className="size-4" />,
         id: 'prompts',
         path: '/settings/prompts',
-        title: 'Prompts',
+        title: uiT('Prompts'),
     },
     {
         icon: <Key className="size-4" />,
         id: 'api-tokens',
         path: '/settings/api-tokens',
-        title: 'API Tokens',
+        title: uiT('API Tokens'),
     },
 ] as const;
 
@@ -59,24 +60,24 @@ function SettingsHeader() {
         const path = location.pathname;
 
         if (path === '/settings/providers/new') {
-            return 'Create Provider';
+            return uiT('Create Provider');
         }
 
         if (path.startsWith('/settings/providers/') && params.providerId && params.providerId !== 'new') {
-            return 'Edit Provider';
+            return uiT('Edit Provider');
         }
 
         if (path === '/settings/prompts/new') {
-            return 'Create Prompt';
+            return uiT('Create Prompt');
         }
 
         if (path.startsWith('/settings/prompts/') && params.promptId && params.promptId !== 'new') {
-            return 'Edit Prompt';
+            return uiT('Edit Prompt');
         }
 
         const activeItem = menuItems.find((item) => path.startsWith(item.path));
 
-        return activeItem?.title ?? 'Settings';
+        return activeItem?.title ?? uiT('Settings');
     }, [location.pathname, params]);
 
     return (
@@ -117,7 +118,7 @@ function SettingsSidebar() {
                             <SettingsIcon className="size-6" />
                         </div>
                         <div className="grid flex-1 text-left leading-tight">
-                            <span className="truncate font-semibold">Settings</span>
+                            <span className="truncate font-semibold">{uiT('Settings')}</span>
                         </div>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -140,7 +141,7 @@ function SettingsSidebar() {
                 <SidebarMenuButton asChild>
                     <NavLink to="/flows">
                         <ArrowLeft className="size-4" />
-                        Back to App
+                        {uiT('Back to App')}
                     </NavLink>
                 </SidebarMenuButton>
             </SidebarFooter>

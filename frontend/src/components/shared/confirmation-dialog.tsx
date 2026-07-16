@@ -12,6 +12,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 type ConfirmationDialogIconProps = ReactElement<React.SVGProps<SVGSVGElement>>;
@@ -35,10 +36,10 @@ interface ConfirmationDialogProps {
 
 function ConfirmationDialog({
     cancelIcon,
-    cancelText = 'Cancel',
+    cancelText = uiT('Cancel'),
     cancelVariant = 'outline',
     confirmIcon = <Trash2 />,
-    confirmText = 'Confirm',
+    confirmText = uiT('Confirm'),
     confirmVariant = 'destructive',
     description,
     handleConfirm,
@@ -54,14 +55,16 @@ function ConfirmationDialog({
     // see "Confirm Action" for a Delete prompt or a Save prompt. Explicit
     // `title` always wins.
     const verb = confirmText.trim();
-    const resolvedTitle = title ?? (verb && verb !== 'Confirm' ? `${verb} ${itemType}` : 'Confirm Action');
+    const resolvedTitle =
+        title ?? (verb && verb !== uiT('Confirm') ? `${verb} ${uiT(itemType)}` : uiT('Confirm Action'));
 
-    const defaultDescription = description || (
-        <>
-            Are you sure you want to {verb.toLowerCase() || 'perform this action on'}{' '}
-            <strong className="text-foreground font-semibold">{itemName}</strong> {itemType}?
-        </>
-    );
+    const defaultDescription =
+        description ||
+        uiT('Are you sure you want to {{verb}} {{itemName}} {{itemType}}?', {
+            itemName,
+            itemType: uiT(itemType),
+            verb: verb.toLowerCase() || uiT('perform this action on'),
+        });
 
     const processIcon = (icon?: ConfirmationDialogIconProps): ConfirmationDialogIconProps | null => {
         if (!icon) {

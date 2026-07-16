@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import type { UserResourceFragmentFragment } from '@/graphql/types';
 
 import { api, getApiErrorMessage, unwrapApiResponse } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 import { validateUploadBatch } from '@/lib/upload-validation';
 
 import {
@@ -68,7 +69,7 @@ const buildUploadSuccessMessage = (uploadedCount: number, dir?: string) => {
     const target = dir ? `to /${dir}` : 'to your library';
 
     if (uploadedCount === 1) {
-        return { description: `Uploaded ${target}`, title: 'File uploaded' };
+        return { description: `Uploaded ${target}`, title: uiT('File uploaded') };
     }
 
     return {
@@ -128,7 +129,7 @@ export function useResourcesUpload({ defaultDir, onSuccess }: UseResourcesUpload
             });
 
             if (validationError) {
-                toast.error('Upload failed', { description: validationError });
+                toast.error(uiT('Upload failed'), { description: validationError });
 
                 return null;
             }
@@ -169,11 +170,11 @@ export function useResourcesUpload({ defaultDir, onSuccess }: UseResourcesUpload
 
                 return data;
             } catch (error) {
-                const description = getApiErrorMessage(error, 'Failed to upload files', {
+                const description = getApiErrorMessage(error, uiT('Failed to upload files'), {
                     409: UPLOAD_OVERWRITE_HINT,
                 });
 
-                toast.error('Upload failed', { description });
+                toast.error(uiT('Upload failed'), { description });
 
                 return null;
             } finally {

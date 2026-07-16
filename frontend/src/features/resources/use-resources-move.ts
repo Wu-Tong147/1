@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { OverwriteOutcome } from '@/components/shared/overwrite';
 
 import { api, getApiErrorMessage, getApiErrorStatusCode } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 
 import { RESOURCES_MOVE_API_PATH } from './resources-constants';
 import { pluralizeItems } from './resources-utils';
@@ -13,8 +14,8 @@ export const resourcesMoveFormSchema = z.object({
     destination: z
         .string()
         .trim()
-        .min(1, { message: 'Destination cannot be empty' })
-        .refine((value) => !value.startsWith('/'), { message: 'Destination must be a relative path' })
+        .min(1, { message: uiT('Destination cannot be empty') })
+        .refine((value) => !value.startsWith('/'), { message: uiT('Destination must be a relative path') })
         .refine((value) => !value.split('/').includes('..'), { message: 'Destination must not contain ".."' }),
 });
 
@@ -67,7 +68,7 @@ export function useResourcesMove(): UseResourcesMoveResult {
                         ? `Moved to /${destination}`
                         : `Moved ${sources.length} ${pluralizeItems(sources.length)} into /${destination}`;
 
-                toast.success('Resource moved', { description });
+                toast.success(uiT('Resource moved'), { description });
 
                 return { kind: 'ok' };
             } catch (error) {
@@ -79,9 +80,9 @@ export function useResourcesMove(): UseResourcesMoveResult {
                     return { kind: 'conflict' };
                 }
 
-                const description = getApiErrorMessage(error, 'Failed to move resource');
+                const description = getApiErrorMessage(error, uiT('Failed to move resource'));
 
-                toast.error('Move failed', { description });
+                toast.error(uiT('Move failed'), { description });
 
                 return { kind: 'error' };
             } finally {

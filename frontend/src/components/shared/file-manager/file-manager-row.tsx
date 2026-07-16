@@ -27,6 +27,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 import type { FileManagerAction, FileManagerInternalNode, FileNode } from './file-manager-types';
@@ -503,7 +504,7 @@ function FileManagerRowImpl({
                         <DropdownMenu onOpenChange={setIsDropdownMenuOpen}>
                             <DropdownMenuTrigger asChild>
                                 <Button
-                                    aria-label="Row actions"
+                                    aria-label={uiT('Row actions')}
                                     className="opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
                                     size="icon-xs"
                                     variant="ghost"

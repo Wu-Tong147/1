@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { OverwriteOutcome } from '@/components/shared/overwrite';
 
 import { api, getApiErrorMessage, getApiErrorStatusCode } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 
 import { RESOURCES_COPY_API_PATH } from './resources-constants';
 import { pluralizeItems } from './resources-utils';
@@ -13,8 +14,8 @@ export const resourcesCopyFormSchema = z.object({
     destination: z
         .string()
         .trim()
-        .min(1, { message: 'Destination cannot be empty' })
-        .refine((value) => !value.startsWith('/'), { message: 'Destination must be a relative path' })
+        .min(1, { message: uiT('Destination cannot be empty') })
+        .refine((value) => !value.startsWith('/'), { message: uiT('Destination must be a relative path') })
         .refine((value) => !value.split('/').includes('..'), { message: 'Destination must not contain ".."' }),
 });
 
@@ -67,7 +68,7 @@ export function useResourcesCopy(): UseResourcesCopyResult {
                         ? `Copied to /${destination}`
                         : `Copied ${sources.length} ${pluralizeItems(sources.length)} into /${destination}`;
 
-                toast.success('Resource copied', { description });
+                toast.success(uiT('Resource copied'), { description });
 
                 return { kind: 'ok' };
             } catch (error) {
@@ -75,9 +76,9 @@ export function useResourcesCopy(): UseResourcesCopyResult {
                     return { kind: 'conflict' };
                 }
 
-                const description = getApiErrorMessage(error, 'Failed to copy resource');
+                const description = getApiErrorMessage(error, uiT('Failed to copy resource'));
 
-                toast.error('Copy failed', { description });
+                toast.error(uiT('Copy failed'), { description });
 
                 return { kind: 'error' };
             } finally {

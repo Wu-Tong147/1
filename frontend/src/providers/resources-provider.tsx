@@ -9,6 +9,7 @@ import { restResourceEntryToFragment, type RestResourceList } from '@/features/r
 import { useResourcesRealtime } from '@/features/resources/use-resources-realtime';
 import { ResourcesDocument, useResourcesQuery } from '@/graphql/types';
 import { api, getApiErrorMessage, unwrapApiResponse } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 import { useUser } from '@/providers/user-provider';
 
 interface ResourcesContextValue {
@@ -103,7 +104,7 @@ export function ResourcesProvider({ children }: ResourcesProviderProps) {
                     return;
                 }
 
-                const message = getApiErrorMessage(caught, 'Failed to load resources');
+                const message = getApiErrorMessage(caught, uiT('Failed to load resources'));
 
                 setRestError(new Error(message));
             } finally {
@@ -131,7 +132,7 @@ export function ResourcesProvider({ children }: ResourcesProviderProps) {
 
     useEffect(() => {
         if (error) {
-            toast.error('Failed to load resources', {
+            toast.error(uiT('Failed to load resources'), {
                 description: error.message,
                 id: RESOURCES_ERROR_TOAST_ID,
             });

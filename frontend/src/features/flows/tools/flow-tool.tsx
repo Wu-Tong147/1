@@ -7,6 +7,7 @@ import Markdown from '@/components/shared/markdown';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import FlowAgentIcon from '@/features/flows/agents/flow-agent-icon';
 import { copyMessageToClipboard } from '@/lib/clipboard';
+import { uiT } from '@/lib/i18n';
 import { formatDate, formatName } from '@/lib/utils/format';
 
 interface FlowToolProps {
@@ -76,7 +77,7 @@ function FlowTool({ log, searchValue = '' }: FlowToolProps) {
                                     <span>{formatName(engine)}</span>
                                 </span>
                             </TooltipTrigger>
-                            <TooltipContent>Tool name</TooltipContent>
+                            <TooltipContent>{uiT('Tool name')}</TooltipContent>
                         </Tooltip>
                     </div>
 
@@ -93,7 +94,7 @@ function FlowTool({ log, searchValue = '' }: FlowToolProps) {
                             className="cursor-pointer"
                             onClick={() => setIsDetailsVisible(!isDetailsVisible)}
                         >
-                            {isDetailsVisible ? 'Hide details' : 'Show details'}
+                            {isDetailsVisible ? uiT('Hide details') : uiT('Show details')}
                         </div>
                         {isDetailsVisible && (
                             <>
@@ -128,7 +129,7 @@ function FlowTool({ log, searchValue = '' }: FlowToolProps) {
                             onClick={handleCopy}
                         />
                     </TooltipTrigger>
-                    <TooltipContent>Copy</TooltipContent>
+                    <TooltipContent>{uiT('Copy')}</TooltipContent>
                 </Tooltip>
                 <span className="text-muted-foreground/50">{formatDate(new Date(createdAt))}</span>
                 {taskId && (

@@ -27,6 +27,7 @@ import { Markdown } from 'tiptap-markdown';
 
 import { Separator } from '@/components/ui/separator';
 import { Toggle } from '@/components/ui/toggle';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 export interface MarkdownEditorHandle {
@@ -330,20 +331,20 @@ function MarkdownEditorToolbar({ disabled, editor }: MarkdownEditorToolbarProps)
             data-slot="markdown-editor-toolbar"
         >
             <Toggle
-                aria-label="Bold"
+                aria-label={uiT('Bold')}
                 onPressedChange={() => editor.chain().focus().toggleBold().run()}
                 pressed={editor.isActive('bold')}
                 size="sm"
-                title="Bold (Ctrl+B)"
+                title={uiT('Bold (Ctrl+B)')}
             >
                 <Bold />
             </Toggle>
             <Toggle
-                aria-label="Italic"
+                aria-label={uiT('Italic')}
                 onPressedChange={() => editor.chain().focus().toggleItalic().run()}
                 pressed={editor.isActive('italic')}
                 size="sm"
-                title="Italic (Ctrl+I)"
+                title={uiT('Italic (Ctrl+I)')}
             >
                 <Italic />
             </Toggle>
@@ -357,11 +358,11 @@ function MarkdownEditorToolbar({ disabled, editor }: MarkdownEditorToolbarProps)
                 <Strikethrough />
             </Toggle>
             <Toggle
-                aria-label="Inline code"
+                aria-label={uiT('Inline code')}
                 onPressedChange={() => editor.chain().focus().toggleCode().run()}
                 pressed={editor.isActive('code')}
                 size="sm"
-                title="Inline code"
+                title={uiT('Inline code')}
             >
                 <Code />
             </Toggle>
@@ -372,29 +373,29 @@ function MarkdownEditorToolbar({ disabled, editor }: MarkdownEditorToolbarProps)
             />
 
             <Toggle
-                aria-label="Heading 1"
+                aria-label={uiT('Heading 1')}
                 onPressedChange={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                 pressed={editor.isActive('heading', { level: 1 })}
                 size="sm"
-                title="Heading 1"
+                title={uiT('Heading 1')}
             >
                 <Heading1 />
             </Toggle>
             <Toggle
-                aria-label="Heading 2"
+                aria-label={uiT('Heading 2')}
                 onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                 pressed={editor.isActive('heading', { level: 2 })}
                 size="sm"
-                title="Heading 2"
+                title={uiT('Heading 2')}
             >
                 <Heading2 />
             </Toggle>
             <Toggle
-                aria-label="Heading 3"
+                aria-label={uiT('Heading 3')}
                 onPressedChange={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
                 pressed={editor.isActive('heading', { level: 3 })}
                 size="sm"
-                title="Heading 3"
+                title={uiT('Heading 3')}
             >
                 <Heading3 />
             </Toggle>
@@ -405,20 +406,20 @@ function MarkdownEditorToolbar({ disabled, editor }: MarkdownEditorToolbarProps)
             />
 
             <Toggle
-                aria-label="Bullet list"
+                aria-label={uiT('Bullet list')}
                 onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
                 pressed={editor.isActive('bulletList')}
                 size="sm"
-                title="Bullet list"
+                title={uiT('Bullet list')}
             >
                 <List />
             </Toggle>
             <Toggle
-                aria-label="Ordered list"
+                aria-label={uiT('Ordered list')}
                 onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
                 pressed={editor.isActive('orderedList')}
                 size="sm"
-                title="Ordered list"
+                title={uiT('Ordered list')}
             >
                 <ListOrdered />
             </Toggle>
@@ -429,60 +430,60 @@ function MarkdownEditorToolbar({ disabled, editor }: MarkdownEditorToolbarProps)
             />
 
             <Toggle
-                aria-label="Blockquote"
+                aria-label={uiT('Blockquote')}
                 onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
                 pressed={editor.isActive('blockquote')}
                 size="sm"
-                title="Blockquote"
+                title={uiT('Blockquote')}
             >
                 <Quote />
             </Toggle>
             <Toggle
-                aria-label="Code block"
+                aria-label={uiT('Code block')}
                 onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
                 pressed={editor.isActive('codeBlock')}
                 size="sm"
-                title="Code block"
+                title={uiT('Code block')}
             >
                 <Code2 />
             </Toggle>
             <Toggle
-                aria-label="Link"
+                aria-label={uiT('Link')}
                 onPressedChange={handleSetLink}
                 pressed={editor.isActive('link')}
                 size="sm"
-                title="Insert link"
+                title={uiT('Insert link')}
             >
                 <LinkIcon />
             </Toggle>
             <Toggle
-                aria-label="Horizontal rule"
+                aria-label={uiT('Horizontal rule')}
                 onPressedChange={() => editor.chain().focus().setHorizontalRule().run()}
                 pressed={false}
                 size="sm"
-                title="Horizontal rule"
+                title={uiT('Horizontal rule')}
             >
                 <Minus />
             </Toggle>
 
             <div className="ml-auto flex items-center gap-0.5">
                 <Toggle
-                    aria-label="Undo"
+                    aria-label={uiT('Undo')}
                     disabled={!editor.can().undo()}
                     onPressedChange={() => editor.chain().focus().undo().run()}
                     pressed={false}
                     size="sm"
-                    title="Undo (Ctrl+Z)"
+                    title={uiT('Undo (Ctrl+Z)')}
                 >
                     <Undo />
                 </Toggle>
                 <Toggle
-                    aria-label="Redo"
+                    aria-label={uiT('Redo')}
                     disabled={!editor.can().redo()}
                     onPressedChange={() => editor.chain().focus().redo().run()}
                     pressed={false}
                     size="sm"
-                    title="Redo (Ctrl+Shift+Z)"
+                    title={uiT('Redo (Ctrl+Shift+Z)')}
                 >
                     <Redo />
                 </Toggle>

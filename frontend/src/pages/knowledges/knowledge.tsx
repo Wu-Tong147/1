@@ -15,6 +15,7 @@ import {
 } from '@/features/knowledges/knowledge-form';
 import { KnowledgeLayout } from '@/features/knowledges/knowledge-layout';
 import { useKnowledgeDocumentQuery } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { useKnowledges } from '@/providers/knowledges-provider';
 
 function Knowledge() {
@@ -34,7 +35,7 @@ function Knowledge() {
 
     useEffect(() => {
         if (!isNew && !isLoadingKnowledge && !knowledge) {
-            toast.error('Knowledge document not found');
+            toast.error(uiT('Knowledge document not found'));
             navigate('/knowledges', { replace: true });
         }
     }, [isNew, isLoadingKnowledge, knowledge, navigate]);

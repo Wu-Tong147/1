@@ -18,6 +18,7 @@ import { Form } from '@/components/ui/form';
 import { Spinner } from '@/components/ui/spinner';
 import { KnowledgeAnswerType, KnowledgeDocType, KnowledgeGuideType, useAnonymizeTextMutation } from '@/graphql/types';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
+import { uiT } from '@/lib/i18n';
 import { Log } from '@/lib/log';
 import { useUser } from '@/providers/user-provider';
 
@@ -51,11 +52,11 @@ const optionalTrimmed = (max: number, label: string) =>
 export const formSchema = z
     .object({
         answerType: z.nativeEnum(KnowledgeAnswerType).optional(),
-        codeLang: optionalTrimmed(KNOWLEDGE_LIMITS.codeLang, 'Code language'),
+        codeLang: optionalTrimmed(KNOWLEDGE_LIMITS.codeLang, uiT('Code language')),
         content: z
             .string()
             .trim()
-            .min(1, { message: 'Content is required' })
+            .min(1, { message: uiT('Content is required') })
             .max(KNOWLEDGE_LIMITS.content, {
                 message: `Content must be ${KNOWLEDGE_LIMITS.content} characters or fewer`,
             }),
@@ -65,7 +66,7 @@ export const formSchema = z
         question: z
             .string()
             .trim()
-            .min(1, { message: 'Question is required' })
+            .min(1, { message: uiT('Question is required') })
             .max(KNOWLEDGE_LIMITS.question, {
                 message: `Question must be ${KNOWLEDGE_LIMITS.question} characters or fewer`,
             }),
@@ -73,8 +74,8 @@ export const formSchema = z
     .superRefine((value, ctx) => {
         const requiredByDocType: Partial<Record<KnowledgeDocType, { field: FieldPath<FormValues>; message: string }>> =
             {
-                [KnowledgeDocType.Answer]: { field: 'answerType', message: 'Answer type is required' },
-                [KnowledgeDocType.Code]: { field: 'codeLang', message: 'Code language is required' },
+                [KnowledgeDocType.Answer]: { field: 'answerType', message: uiT('Answer type is required') },
+                [KnowledgeDocType.Code]: { field: 'codeLang', message: uiT('Code language is required') },
                 [KnowledgeDocType.Guide]: { field: 'guideType', message: 'Guide type is required' },
             };
 
@@ -329,7 +330,7 @@ export function KnowledgeForm({ initialValues, isNew, knowledge, onSubmit }: Kno
         <HeaderButton
             disabled={!canSubmit}
             icon={isSaving ? <Spinner variant="circle" /> : <Save aria-hidden="true" />}
-            label={isNew ? 'Create' : 'Save'}
+            label={isNew ? uiT('Create') : uiT('Save')}
             type="submit"
         />
     );
@@ -354,22 +355,22 @@ export function KnowledgeForm({ initialValues, isNew, knowledge, onSubmit }: Kno
             const anonymizedContent = data?.anonymizeText;
 
             if (anonymizedContent == null) {
-                toast.error('Anonymizer returned no result');
+                toast.error(uiT('Anonymizer returned no result'));
 
                 return;
             }
 
             if (anonymizedContent === currentContent) {
-                toast.info('No sensitive data detected');
+                toast.info(uiT('No sensitive data detected'));
 
                 return;
             }
 
             form.setValue('content', anonymizedContent, { shouldDirty: true, shouldValidate: true });
-            toast.success('Content anonymized');
+            toast.success(uiT('Content anonymized'));
         } catch (error) {
             Log.error('Failed to anonymize content', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to anonymize content');
+            toast.error(error instanceof Error ? error.message : uiT('Failed to anonymize content'));
         } finally {
             setIsAnonymizing(false);
         }

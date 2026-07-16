@@ -5,6 +5,7 @@ import { Cross2Icon } from '@radix-ui/react-icons';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 const Sheet = SheetPrimitive.Root;
@@ -60,7 +61,7 @@ function SheetContent({ children, className, container, overlay = true, side = '
             >
                 <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
                     <Cross2Icon className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
+                    <span className="sr-only">{uiT('Close')}</span>
                 </SheetPrimitive.Close>
                 {children}
             </SheetPrimitive.Content>

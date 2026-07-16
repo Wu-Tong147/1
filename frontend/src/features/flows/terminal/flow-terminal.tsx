@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Form, FormControl, FormField } from '@/components/ui/form';
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { useFlow } from '@/providers/flow-provider';
 
@@ -169,7 +170,7 @@ function FlowTerminal() {
                                         <InputGroupInput
                                             {...field}
                                             autoComplete="off"
-                                            placeholder="Search terminal logs..."
+                                            placeholder={uiT('Search terminal logs...')}
                                             type="text"
                                         />
                                         <InputGroupAddon align="inline-end">
@@ -178,7 +179,7 @@ function FlowTerminal() {
                                                     <InputGroupButton
                                                         onClick={handleFindPrevious}
                                                         size="icon-xs"
-                                                        title="Previous match"
+                                                        title={uiT('Previous match')}
                                                         type="button"
                                                     >
                                                         <ChevronUp className="size-4" />
@@ -186,7 +187,7 @@ function FlowTerminal() {
                                                     <InputGroupButton
                                                         onClick={handleFindNext}
                                                         size="icon-xs"
-                                                        title="Next match"
+                                                        title={uiT('Next match')}
                                                         type="button"
                                                     >
                                                         <ChevronDown className="size-4" />
@@ -197,7 +198,7 @@ function FlowTerminal() {
                                                 <InputGroupButton
                                                     onClick={handleClearSearch}
                                                     size="icon-xs"
-                                                    title="Clear search"
+                                                    title={uiT('Clear search')}
                                                     type="button"
                                                 >
                                                     <X className="size-4" />
@@ -235,8 +236,8 @@ function FlowTerminal() {
                         <EmptyMedia variant="icon">
                             <ListFilter />
                         </EmptyMedia>
-                        <EmptyTitle>No terminal logs found</EmptyTitle>
-                        <EmptyDescription>Try adjusting your search or filter parameters</EmptyDescription>
+                        <EmptyTitle>{uiT('No terminal logs found')}</EmptyTitle>
+                        <EmptyDescription>{uiT('Try adjusting your search or filter parameters')}</EmptyDescription>
                     </EmptyHeader>
                     <EmptyContent>
                         <Button
@@ -244,7 +245,7 @@ function FlowTerminal() {
                             variant="outline"
                         >
                             <X />
-                            Reset filters
+                            {uiT('Reset filters')}
                         </Button>
                     </EmptyContent>
                 </Empty>

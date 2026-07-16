@@ -58,6 +58,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useEffectAfterMount } from '@/hooks/use-effect-after-mount';
 import { useLatestRef } from '@/hooks/use-latest-ref';
 import { usePageStorageKeys } from '@/hooks/use-page-storage-keys';
+import { uiT } from '@/lib/i18n';
 import { migrateLegacyTableState, updateTableState } from '@/lib/table-state';
 import { cn } from '@/lib/utils';
 
@@ -167,7 +168,7 @@ interface DataTableFilterProps {
 
 function DataTableEmptyState({ entityName, filterValue }: DataTableEmptyStateProps) {
     if (!entityName) {
-        return <>No results.</>;
+        return <>{uiT('No results.')}</>;
     }
 
     const hasFilter = filterValue.length > 0;
@@ -179,10 +180,15 @@ function DataTableEmptyState({ entityName, filterValue }: DataTableEmptyStatePro
                 <EmptyMedia variant="icon">
                     <Icon />
                 </EmptyMedia>
-                <EmptyTitle>{hasFilter ? 'No matches' : `No ${entityName} yet`}</EmptyTitle>
+                <EmptyTitle>
+                    {hasFilter ? uiT('No matches') : uiT('No {{entity}} yet', { entity: uiT(entityName) })}
+                </EmptyTitle>
                 {hasFilter ? (
                     <EmptyDescription>
-                        No {entityName} match <code>{filterValue}</code>. Try a different query.
+                        {uiT('No {{entity}} match {{query}}. Try a different query.', {
+                            entity: uiT(entityName),
+                            query: filterValue,
+                        })}
                     </EmptyDescription>
                 ) : null}
             </EmptyHeader>
@@ -627,7 +633,7 @@ function DataTable<TData, TValue = unknown>({
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
-                                aria-label="Search in"
+                                aria-label={uiT('Search in')}
                                 className="shrink-0"
                                 size="icon"
                                 variant="outline"
@@ -677,7 +683,7 @@ function DataTable<TData, TValue = unknown>({
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
-                            aria-label="Columns"
+                            aria-label={uiT('Columns')}
                             className="ml-auto shrink-0"
                             size="icon"
                             variant="outline"
@@ -814,16 +820,20 @@ function DataTable<TData, TValue = unknown>({
                 <div className="text-muted-foreground flex-1 text-xs text-nowrap">
                     {totalRows > 0 ? (
                         <>
-                            Showing {rangeStart}–{rangeEnd} of {totalRows}
+                            {uiT('Showing {{start}}–{{end}} of {{total}}', {
+                                end: rangeEnd,
+                                start: rangeStart,
+                                total: totalRows,
+                            })}
                         </>
                     ) : empty?.entityName ? (
-                        `No ${empty.entityName}`
+                        uiT('No {{entity}}', { entity: uiT(empty.entityName) })
                     ) : (
-                        'No results'
+                        uiT('No results')
                     )}
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium">Rows per page</span>
+                    <span className="text-xs font-medium">{uiT('Rows per page')}</span>
                     <Select
                         onValueChange={(value) => {
                             const pageSize = value === 'all' ? data.length : Number.parseInt(value, 10);
@@ -846,7 +856,7 @@ function DataTable<TData, TValue = unknown>({
                                     {size}
                                 </SelectItem>
                             ))}
-                            <SelectItem value="all">All</SelectItem>
+                            <SelectItem value="all">{uiT('All')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -862,7 +872,7 @@ function DataTable<TData, TValue = unknown>({
                 )}
                 <div className="flex items-center gap-1">
                     <Button
-                        aria-label="First page"
+                        aria-label={uiT('First page')}
                         disabled={!table.getCanPreviousPage()}
                         onClick={() => table.firstPage()}
                         size="icon-xs"
@@ -871,7 +881,7 @@ function DataTable<TData, TValue = unknown>({
                         <ChevronsLeft />
                     </Button>
                     <Button
-                        aria-label="Previous page"
+                        aria-label={uiT('Previous page')}
                         disabled={!table.getCanPreviousPage()}
                         onClick={() => table.previousPage()}
                         size="icon-xs"
@@ -880,7 +890,7 @@ function DataTable<TData, TValue = unknown>({
                         <ChevronLeft />
                     </Button>
                     <Button
-                        aria-label="Next page"
+                        aria-label={uiT('Next page')}
                         disabled={!table.getCanNextPage()}
                         onClick={() => table.nextPage()}
                         size="icon-xs"
@@ -889,7 +899,7 @@ function DataTable<TData, TValue = unknown>({
                         <ChevronRight />
                     </Button>
                     <Button
-                        aria-label="Last page"
+                        aria-label={uiT('Last page')}
                         disabled={!table.getCanNextPage()}
                         onClick={() => table.lastPage()}
                         size="icon-xs"

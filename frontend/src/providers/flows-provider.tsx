@@ -15,6 +15,7 @@ import {
     useFlowsQuery,
     useFlowUpdatedSubscription,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { Log } from '@/lib/log';
 
 export type Flow = FlowFragmentFragment;
@@ -55,7 +56,7 @@ export function FlowsProvider({ children }: FlowsProviderProps) {
 
     useEffect(() => {
         if (flowsError) {
-            toast.error('Error loading flows', {
+            toast.error(uiT('Error loading flows'), {
                 description: flowsError.message,
             });
             Log.error('Error loading flows:', flowsError);
@@ -93,8 +94,9 @@ export function FlowsProvider({ children }: FlowsProviderProps) {
 
                 return null;
             } catch (error) {
-                const description = error instanceof Error ? error.message : 'An error occurred while creating flow';
-                toast.error('Failed to create flow', {
+                const description =
+                    error instanceof Error ? error.message : uiT('An error occurred while creating flow');
+                toast.error(uiT('Failed to create flow'), {
                     description,
                 });
                 Log.error('Error creating flow:', error);
@@ -134,8 +136,8 @@ export function FlowsProvider({ children }: FlowsProviderProps) {
                 return null;
             } catch (error) {
                 const description =
-                    error instanceof Error ? error.message : 'An error occurred while creating assistant';
-                toast.error('Failed to create assistant', {
+                    error instanceof Error ? error.message : uiT('An error occurred while creating assistant');
+                toast.error(uiT('Failed to create assistant'), {
                     description,
                 });
                 Log.error('Error creating assistant:', error);
@@ -154,9 +156,9 @@ export function FlowsProvider({ children }: FlowsProviderProps) {
                 return false;
             }
 
-            const flowDescription = `${title || 'Unknown'} (ID: ${flowId})`;
+            const flowDescription = `${title || uiT('Unknown')} (ID: ${flowId})`;
 
-            const loadingToastId = toast.loading('Deleting flow...', {
+            const loadingToastId = toast.loading(uiT('Deleting flow...'), {
                 description: flowDescription,
             });
 
@@ -165,14 +167,15 @@ export function FlowsProvider({ children }: FlowsProviderProps) {
                     variables: { flowId },
                 });
 
-                toast.success('Flow deleted successfully', {
+                toast.success(uiT('Flow deleted successfully'), {
                     description: flowDescription,
                     id: loadingToastId,
                 });
 
                 return true;
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'An error occurred while deleting flow';
+                const errorMessage =
+                    error instanceof Error ? error.message : uiT('An error occurred while deleting flow');
                 toast.error(errorMessage, {
                     description: flowDescription,
                     id: loadingToastId,
@@ -193,9 +196,9 @@ export function FlowsProvider({ children }: FlowsProviderProps) {
                 return false;
             }
 
-            const flowDescription = `${title || 'Unknown'} (ID: ${flowId})`;
+            const flowDescription = `${title || uiT('Unknown')} (ID: ${flowId})`;
 
-            const loadingToastId = toast.loading('Finishing flow...', {
+            const loadingToastId = toast.loading(uiT('Finishing flow...'), {
                 description: flowDescription,
             });
 
@@ -204,14 +207,15 @@ export function FlowsProvider({ children }: FlowsProviderProps) {
                     variables: { flowId },
                 });
 
-                toast.success('Flow finished successfully', {
+                toast.success(uiT('Flow finished successfully'), {
                     description: flowDescription,
                     id: loadingToastId,
                 });
 
                 return true;
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'An error occurred while finishing flow';
+                const errorMessage =
+                    error instanceof Error ? error.message : uiT('An error occurred while finishing flow');
                 toast.error(errorMessage, {
                     description: flowDescription,
                     id: loadingToastId,

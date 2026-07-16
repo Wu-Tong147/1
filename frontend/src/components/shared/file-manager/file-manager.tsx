@@ -19,6 +19,7 @@ import {
     ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { useLatestRef } from '@/hooks/use-latest-ref';
+import { uiT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 import type { FileManagerRowDisplay, FileManagerRowHandlers } from './file-manager-row';
@@ -460,7 +461,7 @@ export function FileManager({
     // clicks outside any row, which is the entire point.
     const treeBody = (
         <div
-            aria-label="File tree"
+            aria-label={uiT('File tree')}
             aria-multiselectable={isCheckboxVisible || undefined}
             className={cn(
                 'flex flex-1 flex-col overflow-y-auto py-1 transition-colors',
@@ -520,7 +521,7 @@ export function FileManager({
             >
                 {isCheckboxVisible ? (
                     <Checkbox
-                        aria-label={effectiveLabels.selectAllAriaLabel ?? 'Select all'}
+                        aria-label={effectiveLabels.selectAllAriaLabel ?? uiT('Select all')}
                         checked={getCheckboxState(isAllSelected, isSomeSelected)}
                         onCheckedChange={toggleSelectAll}
                     />
@@ -536,8 +537,8 @@ export function FileManager({
                             aria-expanded={isAllExpanded}
                             aria-label={
                                 isAllExpanded
-                                    ? (effectiveLabels.collapseAllAriaLabel ?? 'Collapse all')
-                                    : (effectiveLabels.expandAllAriaLabel ?? 'Expand all')
+                                    ? (effectiveLabels.collapseAllAriaLabel ?? uiT('Collapse all'))
+                                    : (effectiveLabels.expandAllAriaLabel ?? uiT('Expand all'))
                             }
                             className="text-muted-foreground hover:bg-muted hover:text-primary focus-visible:ring-ring -mx-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded transition-colors outline-none focus-visible:ring-1"
                             onClick={toggleExpandAll}
@@ -553,11 +554,16 @@ export function FileManager({
                             className="-mx-0.5 size-4 shrink-0"
                         />
                     )}
-                    {renderSortableHeader('name', effectiveLabels.columnName ?? 'Name', isNameSortable)}
+                    {renderSortableHeader('name', effectiveLabels.columnName ?? uiT('Name'), isNameSortable)}
                 </div>
-                {isSizeVisible && renderSortableHeader('size', effectiveLabels.columnSize ?? 'Size', isSizeSortable)}
+                {isSizeVisible &&
+                    renderSortableHeader('size', effectiveLabels.columnSize ?? uiT('Size'), isSizeSortable)}
                 {isModifiedVisible &&
-                    renderSortableHeader('modified', effectiveLabels.columnModified ?? 'Modified', isModifiedSortable)}
+                    renderSortableHeader(
+                        'modified',
+                        effectiveLabels.columnModified ?? uiT('Modified'),
+                        isModifiedSortable,
+                    )}
                 {hasActions && (
                     <span
                         aria-hidden="true"

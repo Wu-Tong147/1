@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { api, getApiErrorMessage, unwrapApiResponse } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 import { validateUploadBatch } from '@/lib/upload-validation';
 
 import {
@@ -32,7 +33,7 @@ const buildUploadSuccessMessage = (uploadedCount: number, firstFileName?: string
     if (uploadedCount === 1) {
         return {
             description: `Available at ${UPLOADS_TARGET_DIRECTORY}/${firstFileName ?? ''}`,
-            title: 'File uploaded',
+            title: uiT('File uploaded'),
         };
     }
 
@@ -77,7 +78,7 @@ export function useFlowFilesUpload({ flowId }: UseFlowFilesUploadParams): UseFlo
             });
 
             if (validationError) {
-                toast.error('Upload failed', { description: validationError });
+                toast.error(uiT('Upload failed'), { description: validationError });
 
                 return;
             }
@@ -101,9 +102,9 @@ export function useFlowFilesUpload({ flowId }: UseFlowFilesUploadParams): UseFlo
 
                 toast.success(successMessage.title, { description: successMessage.description });
             } catch (error) {
-                const description = getApiErrorMessage(error, 'Failed to upload files');
+                const description = getApiErrorMessage(error, uiT('Failed to upload files'));
 
-                toast.error('Upload failed', { description });
+                toast.error(uiT('Upload failed'), { description });
             } finally {
                 setIsUploading(false);
             }

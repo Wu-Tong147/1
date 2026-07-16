@@ -61,6 +61,7 @@ import { useResourcesUpload } from '@/features/resources/use-resources-upload';
 import { useEffectAfterMount } from '@/hooks/use-effect-after-mount';
 import { useFilesDragAndDrop } from '@/hooks/use-files-drag-and-drop';
 import { usePageStorageKeys } from '@/hooks/use-page-storage-keys';
+import { uiT } from '@/lib/i18n';
 import { copyToClipboard } from '@/lib/report';
 import { migrateLegacyViewOptions, saveViewOptions } from '@/lib/view-options-storage';
 import { useResources } from '@/providers/resources-provider';
@@ -232,12 +233,12 @@ function Resources() {
         const wasCopied = await copyToClipboard(file.path);
 
         if (wasCopied) {
-            toast.success('Path copied to clipboard');
+            toast.success(uiT('Path copied to clipboard'));
 
             return;
         }
 
-        toast.error('Failed to copy path');
+        toast.error(uiT('Failed to copy path'));
     }, []);
 
     /**
@@ -259,7 +260,7 @@ function Resources() {
             return;
         }
 
-        toast.error('Failed to copy paths');
+        toast.error(uiT('Failed to copy paths'));
     }, []);
 
     /**
@@ -316,7 +317,7 @@ function Resources() {
                 appliesToFiles: false,
                 icon: FolderPlus,
                 id: 'resources-mkdir-here',
-                label: 'New folder',
+                label: uiT('New folder'),
                 onSelect: handleMkdirHere,
                 separatorBefore: true,
             },
@@ -325,14 +326,14 @@ function Resources() {
                 appliesToFiles: false,
                 icon: Upload,
                 id: 'resources-upload-here',
-                label: 'Upload files',
+                label: uiT('Upload files'),
                 onSelect: handleUploadHere,
             },
             {
                 appliesToDirs: true,
                 icon: FileSymlink,
                 id: 'resources-rename',
-                label: 'Rename or move',
+                label: uiT('Rename or move'),
                 onSelect: (file) => setFilesToMove([file]),
                 separatorBefore: true,
             },
@@ -370,13 +371,13 @@ function Resources() {
             {
                 icon: FolderPlus,
                 id: 'resources-empty-mkdir',
-                label: 'New folder',
+                label: uiT('New folder'),
                 onSelect: () => setIsMkdirOpen(true),
             },
             {
                 icon: Upload,
                 id: 'resources-empty-upload',
-                label: 'Upload files',
+                label: uiT('Upload files'),
                 onSelect: upload.openFilePicker,
             },
         ],
@@ -404,7 +405,7 @@ function Resources() {
                     <BreadcrumbList className="min-w-0 flex-nowrap">
                         <BreadcrumbItem className="min-w-0">
                             <Folder className="size-4 shrink-0" />
-                            <BreadcrumbPage className="min-w-0 truncate">Resources</BreadcrumbPage>
+                            <BreadcrumbPage className="min-w-0 truncate">{uiT('Resources')}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -413,15 +414,15 @@ function Resources() {
                 <HeaderButton
                     disabled={upload.isUploading}
                     icon={<FolderPlus />}
-                    label="New folder"
+                    label={uiT('New folder')}
                     onClick={() => setIsMkdirOpen(true)}
                     variant="outline"
                 />
                 <HeaderButton
-                    aria-label={upload.isUploading ? 'Uploading...' : 'Upload files'}
+                    aria-label={upload.isUploading ? uiT('Uploading...') : uiT('Upload files')}
                     disabled={upload.isUploading}
                     icon={upload.isUploading ? <Loader2 className="animate-spin" /> : <Upload />}
-                    label={upload.isUploading ? 'Uploading...' : 'Upload files'}
+                    label={upload.isUploading ? uiT('Uploading...') : uiT('Upload files')}
                     onClick={upload.openFilePicker}
                     variant="secondary"
                 />
@@ -433,13 +434,13 @@ function Resources() {
 
     const noResourcesState = (
         <FileDropZone
-            actionLabel="Upload files"
+            actionLabel={uiT('Upload files')}
             description="Upload documents so PentAGI agents can reference them during your flows. You can also drag & drop files anywhere in this panel."
             hint="Up to 300 MB per file · 2 GB per upload"
             isDragging={isDragging}
             isUploading={upload.isUploading}
             onBrowse={upload.openFilePicker}
-            title="No resources yet"
+            title={uiT('No resources yet')}
         />
     );
 
@@ -449,9 +450,9 @@ function Resources() {
                 <EmptyMedia variant="icon">
                     <Search />
                 </EmptyMedia>
-                <EmptyTitle>No matches</EmptyTitle>
+                <EmptyTitle>{uiT('No matches')}</EmptyTitle>
                 <EmptyDescription>
-                    No resources match <code>{search.debouncedQuery.trim()}</code>. Try a different query.
+                    {uiT('No resources match')} <code>{search.debouncedQuery.trim()}</code>. Try a different query.
                 </EmptyDescription>
             </EmptyHeader>
         </Empty>
@@ -479,7 +480,7 @@ function Resources() {
                     <div className="bg-primary/10 border-primary pointer-events-none absolute inset-2 z-30 flex items-center justify-center rounded-lg border-2 border-dashed">
                         <div className="text-primary flex flex-col items-center gap-2">
                             <FolderUp className="size-8" />
-                            <span className="text-sm font-medium">Drop files to upload</span>
+                            <span className="text-sm font-medium">{uiT('Drop files to upload')}</span>
                         </div>
                     </div>
                 )}
@@ -487,10 +488,10 @@ function Resources() {
                 <div className="flex items-center gap-2">
                     <InputGroup className="max-w-sm flex-1">
                         <InputGroupInput
-                            aria-label="Search resources"
+                            aria-label={uiT('Search resources')}
                             autoComplete="off"
                             onChange={(event) => search.setQuery(event.target.value)}
-                            placeholder="Search resources..."
+                            placeholder={uiT('Search resources...')}
                             type="text"
                             value={search.rawQuery}
                         />
@@ -508,7 +509,7 @@ function Resources() {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
-                                aria-label="Column settings"
+                                aria-label={uiT('Column settings')}
                                 className="ml-auto"
                                 size="icon"
                                 variant="outline"
@@ -522,14 +523,14 @@ function Resources() {
                                 onCheckedChange={() => toggleViewOption('size')}
                                 onSelect={(event) => event.preventDefault()}
                             >
-                                Size
+                                {uiT('Size')}
                             </DropdownMenuCheckboxItem>
                             <DropdownMenuCheckboxItem
                                 checked={viewOptions.modified}
                                 onCheckedChange={() => toggleViewOption('modified')}
                                 onSelect={(event) => event.preventDefault()}
                             >
-                                Modified
+                                {uiT('Modified')}
                             </DropdownMenuCheckboxItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuCheckboxItem
@@ -537,7 +538,7 @@ function Resources() {
                                 onCheckedChange={() => toggleViewOption('foldersFirst')}
                                 onSelect={(event) => event.preventDefault()}
                             >
-                                Folders first
+                                {uiT('Folders first')}
                             </DropdownMenuCheckboxItem>
                             <DropdownMenuCheckboxItem
                                 checked={viewOptions.isModifiedRelative}
@@ -545,7 +546,7 @@ function Resources() {
                                 onCheckedChange={() => toggleViewOption('isModifiedRelative')}
                                 onSelect={(event) => event.preventDefault()}
                             >
-                                Relative dates
+                                {uiT('Relative dates')}
                             </DropdownMenuCheckboxItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -594,13 +595,13 @@ function Resources() {
                 />
 
                 <ConfirmationDialog
-                    confirmText="Delete"
+                    confirmText={uiT('Delete')}
                     handleConfirm={deletion.confirmDelete}
                     handleOpenChange={handleDeleteDialogOpenChange}
                     isOpen={!!deletion.fileToDelete}
                     itemName={deletion.fileToDelete?.name}
                     itemType={deletion.fileToDelete?.isDir ? 'directory' : 'resource'}
-                    title={deletion.fileToDelete?.isDir ? 'Delete directory' : 'Delete resource'}
+                    title={deletion.fileToDelete?.isDir ? uiT('Delete directory') : uiT('Delete resource')}
                 />
             </div>
         </>

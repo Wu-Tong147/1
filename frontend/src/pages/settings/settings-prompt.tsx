@@ -14,7 +14,14 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactDiffViewer from 'react-diff-viewer-continued';
-import { type Control, type ControllerRenderProps, type FieldValues, useController, useForm, useFormState } from 'react-hook-form';
+import {
+    type Control,
+    type ControllerRenderProps,
+    type FieldValues,
+    useController,
+    useForm,
+    useFormState,
+} from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 
@@ -36,15 +43,16 @@ import {
     useUpdatePromptMutation,
     useValidatePromptMutation,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { formatPromptId } from '@/lib/route-titles/format-prompt-id';
 import { cn } from '@/lib/utils';
 
 const systemFormSchema = z.object({
-    template: z.string().min(1, 'System template is required'),
+    template: z.string().min(1, uiT('System template is required')),
 });
 
 const humanFormSchema = z.object({
-    template: z.string().min(1, 'Human template is required'),
+    template: z.string().min(1, uiT('Human template is required')),
 });
 
 interface BaseFieldProps extends ControllerProps {
@@ -143,7 +151,11 @@ function SettingsPrompt() {
 
     const isLoading = isCreateLoading || isUpdateLoading || isDeleteLoading || isValidateLoading;
 
-    const handleVariableClick = (variable: string, field: ControllerRenderProps<FieldValues, string>, formId: string) => {
+    const handleVariableClick = (
+        variable: string,
+        field: ControllerRenderProps<FieldValues, string>,
+        formId: string,
+    ) => {
         const textarea = document.querySelector(`#${formId} textarea`) as HTMLTextAreaElement;
 
         if (textarea) {
@@ -209,7 +221,7 @@ function SettingsPrompt() {
             setResetDialogOpen(false);
         } catch (error) {
             console.error('Reset error:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An error occurred while resetting');
+            setSubmitError(error instanceof Error ? error.message : uiT('An error occurred while resetting'));
             setResetDialogOpen(false);
         }
     };
@@ -253,7 +265,7 @@ function SettingsPrompt() {
             setValidationDialogOpen(true);
         } catch (error) {
             console.error('Validation error:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An error occurred while validating');
+            setSubmitError(error instanceof Error ? error.message : uiT('An error occurred while validating'));
         }
     };
 
@@ -499,7 +511,7 @@ function SettingsPrompt() {
             }
         } catch (error) {
             console.error('Submit error:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An error occurred while saving');
+            setSubmitError(error instanceof Error ? error.message : uiT('An error occurred while saving'));
         }
     };
 
@@ -522,7 +534,7 @@ function SettingsPrompt() {
             const humanPromptType = agentData.human?.type;
 
             if (!humanPromptType) {
-                setSubmitError('Human prompt type not found');
+                setSubmitError(uiT('Human prompt type not found'));
 
                 return;
             }
@@ -546,7 +558,7 @@ function SettingsPrompt() {
             }
         } catch (error) {
             console.error('Submit error:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An error occurred while saving');
+            setSubmitError(error instanceof Error ? error.message : uiT('An error occurred while saving'));
         }
     };
 
@@ -554,9 +566,9 @@ function SettingsPrompt() {
         return (
             <>
                 <StatusCard
-                    description="Please wait while we fetch prompt information"
+                    description={uiT('Please wait while we fetch prompt information')}
                     icon={<Loader2 className="text-muted-foreground size-16 animate-spin" />}
-                    title="Loading prompt data..."
+                    title={uiT('Loading prompt data...')}
                 />
             </>
         );
@@ -567,7 +579,7 @@ function SettingsPrompt() {
             <>
                 <Alert variant="destructive">
                     <AlertCircle className="size-4" />
-                    <AlertTitle>Error loading prompt data</AlertTitle>
+                    <AlertTitle>{uiT('Error loading prompt data')}</AlertTitle>
                     <AlertDescription>{error.message}</AlertDescription>
                 </Alert>
             </>
@@ -579,7 +591,7 @@ function SettingsPrompt() {
             <>
                 <Alert variant="destructive">
                     <AlertCircle className="size-4" />
-                    <AlertTitle>Prompt not found</AlertTitle>
+                    <AlertTitle>{uiT('Prompt not found')}</AlertTitle>
                     <AlertDescription>
                         The prompt "{promptId}" could not be found or is not supported for editing.
                     </AlertDescription>
@@ -687,8 +699,8 @@ function SettingsPrompt() {
 
                 <div className="text-muted-foreground">
                     {promptInfo.type === 'agent'
-                        ? 'Configure prompts for this AI agent'
-                        : 'Configure the prompt for this tool'}
+                        ? uiT('Configure prompts for this AI agent')
+                        : uiT('Configure the prompt for this tool')}
                 </div>
             </div>
 
@@ -701,14 +713,14 @@ function SettingsPrompt() {
                     <TabsTrigger value="system">
                         <div className="flex items-center gap-2">
                             <Code className="size-4" />
-                            System Prompt
+                            {uiT('System Prompt')}
                         </div>
                     </TabsTrigger>
                     {promptInfo.type === 'agent' && promptInfo.hasHuman && (
                         <TabsTrigger value="human">
                             <div className="flex items-center gap-2">
                                 <User className="size-4" />
-                                Human Prompt
+                                {uiT('Human Prompt')}
                             </div>
                         </TabsTrigger>
                     )}
@@ -728,7 +740,7 @@ function SettingsPrompt() {
                             {mutationError && (
                                 <Alert variant="destructive">
                                     <AlertCircle className="size-4" />
-                                    <AlertTitle>Error</AlertTitle>
+                                    <AlertTitle>{uiT('Error')}</AlertTitle>
                                     <AlertDescription>
                                         {mutationError instanceof Error ? (
                                             mutationError.message
@@ -746,8 +758,8 @@ function SettingsPrompt() {
                                 name="template"
                                 placeholder={
                                     promptInfo.type === 'tool'
-                                        ? 'Enter the tool template...'
-                                        : 'Enter the system prompt template...'
+                                        ? uiT('Enter the tool template...')
+                                        : uiT('Enter the system prompt template...')
                                 }
                             />
                         </form>
@@ -769,7 +781,7 @@ function SettingsPrompt() {
                                 {mutationError && (
                                     <Alert variant="destructive">
                                         <AlertCircle className="size-4" />
-                                        <AlertTitle>Error</AlertTitle>
+                                        <AlertTitle>{uiT('Error')}</AlertTitle>
                                         <AlertDescription>
                                             {mutationError instanceof Error ? (
                                                 mutationError.message
@@ -785,7 +797,7 @@ function SettingsPrompt() {
                                     control={humanForm.control}
                                     disabled={isLoading}
                                     name="template"
-                                    placeholder="Enter the human prompt template..."
+                                    placeholder={uiT('Enter the human prompt template...')}
                                 />
                             </form>
                         </Form>
@@ -818,7 +830,7 @@ function SettingsPrompt() {
                                     variant="destructive"
                                 >
                                     {isDeleteLoading ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw />}
-                                    {isDeleteLoading ? 'Resetting...' : 'Reset'}
+                                    {isDeleteLoading ? uiT('Resetting...') : uiT('Reset')}
                                 </Button>
 
                                 <Button
@@ -843,7 +855,7 @@ function SettingsPrompt() {
                             ) : (
                                 <CheckCircle className="size-4" />
                             )}
-                            {isValidateLoading ? 'Validating...' : 'Validate'}
+                            {isValidateLoading ? uiT('Validating...') : uiT('Validate')}
                         </Button>
                     </div>
 
@@ -854,7 +866,7 @@ function SettingsPrompt() {
                             type="button"
                             variant="outline"
                         >
-                            Cancel
+                            {uiT('Cancel')}
                         </Button>
                         {activeTab === 'system' && (
                             <FormSubmitButton
@@ -863,7 +875,7 @@ function SettingsPrompt() {
                                 loading={isLoading}
                                 variant="secondary"
                             >
-                                {isLoading ? 'Saving...' : 'Save Changes'}
+                                {isLoading ? uiT('Saving...') : uiT('Save Changes')}
                             </FormSubmitButton>
                         )}
                         {activeTab === 'human' && promptInfo?.type === 'agent' && promptInfo?.hasHuman && (
@@ -873,7 +885,7 @@ function SettingsPrompt() {
                                 loading={isLoading}
                                 variant="secondary"
                             >
-                                {isLoading ? 'Saving...' : 'Save Changes'}
+                                {isLoading ? uiT('Saving...') : uiT('Save Changes')}
                             </FormSubmitButton>
                         )}
                     </div>
@@ -882,10 +894,10 @@ function SettingsPrompt() {
 
             {/* Reset Confirmation Dialog */}
             <ConfirmationDialog
-                cancelText="Cancel"
+                cancelText={uiT('Cancel')}
                 cancelVariant="outline"
                 confirmIcon={<RotateCcw />}
-                confirmText="Reset"
+                confirmText={uiT('Reset')}
                 confirmVariant="destructive"
                 description="Are you sure you want to reset this prompt to its default value? This action cannot be undone."
                 handleConfirm={handleConfirmReset}
@@ -893,20 +905,20 @@ function SettingsPrompt() {
                 isOpen={resetDialogOpen}
                 itemName={`${activeTab} prompt`}
                 itemType="template"
-                title="Reset Prompt"
+                title={uiT('Reset Prompt')}
             />
 
             {/* Leave Confirmation Dialog */}
             <ConfirmationDialog
-                cancelText="Stay"
+                cancelText={uiT('Stay')}
                 confirmIcon={undefined}
-                confirmText="Leave"
+                confirmText={uiT('Leave')}
                 confirmVariant="destructive"
-                description="You have unsaved changes. Are you sure you want to leave without saving?"
+                description={uiT('You have unsaved changes. Are you sure you want to leave without saving?')}
                 handleConfirm={handleConfirmLeave}
                 handleOpenChange={handleLeaveDialogOpenChange}
                 isOpen={isLeaveDialogOpen}
-                title="Discard changes?"
+                title={uiT('Discard changes?')}
             />
 
             {/* Validation Results Dialog */}
@@ -918,7 +930,7 @@ function SettingsPrompt() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <AlertCircle className="size-5" />
-                            Validation Results
+                            {uiT('Validation Results')}
                         </DialogTitle>
                         <DialogDescription>
                             The validation result for the {activeTab} prompt template.
@@ -934,19 +946,21 @@ function SettingsPrompt() {
                                     <XCircle className="size-4 text-red-500!" />
                                 )}
                                 <AlertTitle>
-                                    {validationResult.result === 'success' ? 'Valid Template' : 'Validation Error'}
+                                    {validationResult.result === 'success'
+                                        ? uiT('Valid Template')
+                                        : uiT('Validation Error')}
                                 </AlertTitle>
                                 <AlertDescription>
                                     <div className="whitespace-pre-line">
                                         {validationResult.message}
                                         {validationResult.details && (
                                             <div className="mt-2">
-                                                <strong>Details:</strong> {validationResult.details}
+                                                <strong>{uiT('Details:')}</strong> {validationResult.details}
                                             </div>
                                         )}
                                         {validationResult.line && (
                                             <div className="mt-1">
-                                                <strong>Line:</strong> {validationResult.line}
+                                                <strong>{uiT('Line:')}</strong> {validationResult.line}
                                             </div>
                                         )}
                                     </div>
@@ -954,7 +968,7 @@ function SettingsPrompt() {
                             </Alert>
 
                             <div className="flex justify-end">
-                                <Button onClick={() => setValidationDialogOpen(false)}>Close</Button>
+                                <Button onClick={() => setValidationDialogOpen(false)}>{uiT('Close')}</Button>
                             </div>
                         </div>
                     )}
@@ -972,7 +986,9 @@ function SettingsPrompt() {
                             <FileDiff className="size-5" />
                             Diff
                         </DialogTitle>
-                        <DialogDescription>Changes between current value and default template.</DialogDescription>
+                        <DialogDescription>
+                            {uiT('Changes between current value and default template.')}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="max-h-[70vh] overflow-auto">
                         <ReactDiffViewer
@@ -998,7 +1014,7 @@ function Variables({ currentTemplate, onVariableClick, variables }: VariablesPro
 
     return (
         <div className="bg-muted/50 mb-4 rounded-md border p-3">
-            <h4 className="text-muted-foreground mb-2 text-sm font-medium">Available Variables:</h4>
+            <h4 className="text-muted-foreground mb-2 text-sm font-medium">{uiT('Available Variables:')}</h4>
             <div className="flex flex-wrap gap-1">
                 {variables.map((variable) => {
                     const isUsed = usedVariables.has(variable);

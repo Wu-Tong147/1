@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FlowForm, type FlowFormValues } from '@/features/flows/flow-form';
+import { uiT } from '@/lib/i18n';
 import { useFlows } from '@/providers/flows-provider';
 import { useProviders } from '@/providers/providers-provider';
 import { useSystemSettings } from '@/providers/system-settings-provider';
@@ -54,7 +55,7 @@ function NewFlow() {
                 <Breadcrumb className="min-w-0 flex-1">
                     <BreadcrumbList className="min-w-0 flex-nowrap">
                         <BreadcrumbItem className="min-w-0">
-                            <BreadcrumbPage className="min-w-0 truncate">New flow</BreadcrumbPage>
+                            <BreadcrumbPage className="min-w-0 truncate">{uiT('New flow')}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -63,8 +64,10 @@ function NewFlow() {
                 <Card className="w-full max-w-2xl">
                     <CardContent className="flex flex-col gap-4 pt-6">
                         <div className="text-center">
-                            <h1 className="text-2xl font-semibold">Create a new flow</h1>
-                            <p className="text-muted-foreground mt-2">Describe what you would like PentAGI to test</p>
+                            <h1 className="text-2xl font-semibold">{uiT('Create a new flow')}</h1>
+                            <p className="text-muted-foreground mt-2">
+                                {uiT('Describe what you would like PentAGI to test')}
+                            </p>
                         </div>
                         <Tabs
                             onValueChange={(value) => setFlowType(value as 'assistant' | 'automation')}
@@ -75,13 +78,13 @@ function NewFlow() {
                                     disabled={isLoading}
                                     value="automation"
                                 >
-                                    Automation
+                                    {uiT('Automation')}
                                 </TabsTrigger>
                                 <TabsTrigger
                                     disabled={isLoading}
                                     value="assistant"
                                 >
-                                    Assistant
+                                    {uiT('Assistant')}
                                 </TabsTrigger>
                             </TabsList>
                         </Tabs>
@@ -95,9 +98,9 @@ function NewFlow() {
                             placeholder={
                                 !isLoading
                                     ? flowType === 'automation'
-                                        ? 'Describe what you would like PentAGI to test...'
-                                        : 'What would you like me to help you with?'
-                                    : 'Creating a new flow...'
+                                        ? uiT('Describe what you would like PentAGI to test...')
+                                        : uiT('What would you like me to help you with?')
+                                    : uiT('Creating a new flow...')
                             }
                             type={flowType}
                         />

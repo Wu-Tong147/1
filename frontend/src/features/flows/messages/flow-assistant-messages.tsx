@@ -18,6 +18,7 @@ import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusType } from '@/graphql/types';
 import { useAutoScroll } from '@/hooks/use-auto-scroll';
+import { uiT } from '@/lib/i18n';
 import { Log } from '@/lib/log';
 import { cn } from '@/lib/utils';
 import { formatName } from '@/lib/utils/format';
@@ -198,7 +199,7 @@ function AssistantsDropdown({
                             </>
                         ) : (
                             <span className="bg-muted text-muted-foreground flex h-5 shrink-0 items-center justify-center rounded px-1 text-xs font-medium">
-                                New
+                                {uiT('New')}
                             </span>
                         )}
                         <ChevronDown className="opacity-50" />
@@ -209,9 +210,9 @@ function AssistantsDropdown({
                     className="w-[400px] p-0"
                 >
                     <Command>
-                        <CommandInput placeholder="Search assistants..." />
+                        <CommandInput placeholder={uiT('Search assistants...')} />
                         <CommandList>
-                            <CommandEmpty>No assistants found.</CommandEmpty>
+                            <CommandEmpty>{uiT('No assistants found.')}</CommandEmpty>
 
                             {!isDisabled && (
                                 <CommandGroup>
@@ -258,14 +259,14 @@ function AssistantsDropdown({
             </Popover>
 
             <ConfirmationDialog
-                cancelText="Cancel"
-                confirmText="Delete"
+                cancelText={uiT('Cancel')}
+                confirmText={uiT('Delete')}
                 handleConfirm={handleConfirmDelete}
                 handleOpenChange={setDeleteDialogOpen}
                 isOpen={deleteDialogOpen}
                 itemName={currentAssistant?.title}
                 itemType="assistant"
-                title="Delete Assistant"
+                title={uiT('Delete Assistant')}
             />
         </>
     );
@@ -448,37 +449,37 @@ function FlowAssistantMessages({ className }: FlowAssistantMessagesProps) {
 
     const placeholder = useMemo(() => {
         if (!flowId) {
-            return 'Select a flow...';
+            return uiT('Select a flow...');
         }
 
         if (isAssistantCreating) {
-            return 'Creating assistant...';
+            return uiT('Creating assistant...');
         }
 
         if (!selectedAssistant?.status) {
-            return 'Type a message to create a new assistant...';
+            return uiT('Type a message to create a new assistant...');
         }
 
         switch (selectedAssistant.status) {
             case StatusType.Created: {
-                return 'Assistant is starting...';
+                return uiT('Assistant is starting...');
             }
 
             case StatusType.Failed:
             case StatusType.Finished: {
-                return 'This assistant session has ended. Create a new one to continue.';
+                return uiT('This assistant session has ended. Create a new one to continue.');
             }
 
             case StatusType.Running: {
-                return 'Assistant is running... Click Stop to interrupt';
+                return uiT('Assistant is running... Click Stop to interrupt');
             }
 
             case StatusType.Waiting: {
-                return 'Continue the conversation...';
+                return uiT('Continue the conversation...');
             }
 
             default: {
-                return 'Type your message...';
+                return uiT('Type your message...');
             }
         }
     }, [flowId, isAssistantCreating, selectedAssistant?.status]);
@@ -524,7 +525,7 @@ function FlowAssistantMessages({ className }: FlowAssistantMessagesProps) {
                                                 {...field}
                                                 autoComplete="off"
                                                 disabled={isAssistantCreating}
-                                                placeholder="Search messages..."
+                                                placeholder={uiT('Search messages...')}
                                                 type="text"
                                             />
                                             {field.value && (
@@ -557,8 +558,8 @@ function FlowAssistantMessages({ className }: FlowAssistantMessagesProps) {
                         <EmptyMedia variant="icon">
                             <Loader2 className="animate-spin" />
                         </EmptyMedia>
-                        <EmptyTitle>Creating assistant...</EmptyTitle>
-                        <EmptyDescription>Please wait while we set up your new assistant</EmptyDescription>
+                        <EmptyTitle>{uiT('Creating assistant...')}</EmptyTitle>
+                        <EmptyDescription>{uiT('Please wait while we set up your new assistant')}</EmptyDescription>
                     </EmptyHeader>
                 </Empty>
             ) : selectedAssistantId ? (
@@ -599,8 +600,8 @@ function FlowAssistantMessages({ className }: FlowAssistantMessagesProps) {
                             <EmptyMedia variant="icon">
                                 <ListFilter />
                             </EmptyMedia>
-                            <EmptyTitle>No messages found</EmptyTitle>
-                            <EmptyDescription>Try adjusting your search or filter parameters</EmptyDescription>
+                            <EmptyTitle>{uiT('No messages found')}</EmptyTitle>
+                            <EmptyDescription>{uiT('Try adjusting your search or filter parameters')}</EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
                             <Button
@@ -608,7 +609,7 @@ function FlowAssistantMessages({ className }: FlowAssistantMessagesProps) {
                                 variant="outline"
                             >
                                 <X />
-                                Reset filters
+                                {uiT('Reset filters')}
                             </Button>
                         </EmptyContent>
                     </Empty>
@@ -618,8 +619,8 @@ function FlowAssistantMessages({ className }: FlowAssistantMessagesProps) {
                             <EmptyMedia variant="icon">
                                 <Plus />
                             </EmptyMedia>
-                            <EmptyTitle>No messages</EmptyTitle>
-                            <EmptyDescription>No messages found for this assistant</EmptyDescription>
+                            <EmptyTitle>{uiT('No messages')}</EmptyTitle>
+                            <EmptyDescription>{uiT('No messages found for this assistant')}</EmptyDescription>
                         </EmptyHeader>
                     </Empty>
                 )
@@ -629,8 +630,8 @@ function FlowAssistantMessages({ className }: FlowAssistantMessagesProps) {
                         <EmptyMedia variant="icon">
                             <Plus />
                         </EmptyMedia>
-                        <EmptyTitle>New assistant</EmptyTitle>
-                        <EmptyDescription>Type a message below to create a new assistant...</EmptyDescription>
+                        <EmptyTitle>{uiT('New assistant')}</EmptyTitle>
+                        <EmptyDescription>{uiT('Type a message below to create a new assistant...')}</EmptyDescription>
                     </EmptyHeader>
                 </Empty>
             )}

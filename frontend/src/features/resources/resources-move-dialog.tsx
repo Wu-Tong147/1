@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { uiT } from '@/lib/i18n';
 import { useResources } from '@/providers/resources-provider';
 
 import { resourcesMoveFormSchema, type ResourcesMoveFormValues, useResourcesMove } from './use-resources-move';
@@ -184,9 +185,11 @@ function ResourcesMoveDialogForm({ files, onClose }: ResourcesMoveDialogFormProp
     const titleText = isMulti
         ? `Move ${files.length} items`
         : files[0].isDir
-          ? 'Move directory'
-          : 'Rename or move resource';
-    const overwriteCtaLabel = isMulti ? `Move ${files.length} with overwrite` : 'Move with overwrite';
+          ? uiT('Move directory')
+          : uiT('Rename or move resource');
+    const overwriteCtaLabel = isMulti
+        ? uiT('Move {{count}} with overwrite', { count: files.length })
+        : uiT('Move with overwrite');
 
     return (
         <>
@@ -198,10 +201,10 @@ function ResourcesMoveDialogForm({ files, onClose }: ResourcesMoveDialogFormProp
                     </DialogTitle>
                     <DialogDescription>
                         {isMulti ? (
-                            <>Move every selected item into the destination directory.</>
+                            <>{uiT('Move every selected item into the destination directory.')}</>
                         ) : (
                             <>
-                                Update the path of <code>{files[0].path}</code>.
+                                {uiT('Update the path of')} <code>{files[0].path}</code>.
                             </>
                         )}
                     </DialogDescription>
@@ -217,7 +220,7 @@ function ResourcesMoveDialogForm({ files, onClose }: ResourcesMoveDialogFormProp
                             name="destination"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{isMulti ? 'Destination directory' : 'New path'}</FormLabel>
+                                    <FormLabel>{isMulti ? uiT('Destination directory') : uiT('New path')}</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
@@ -225,7 +228,7 @@ function ResourcesMoveDialogForm({ files, onClose }: ResourcesMoveDialogFormProp
                                             autoFocus
                                             disabled={isMoving}
                                             placeholder={
-                                                isMulti ? 'Leave empty to move into the library root' : undefined
+                                                isMulti ? uiT('Leave empty to move into the library root') : undefined
                                             }
                                         />
                                     </FormControl>
@@ -254,7 +257,7 @@ function ResourcesMoveDialogForm({ files, onClose }: ResourcesMoveDialogFormProp
                                 type="button"
                                 variant="outline"
                             >
-                                Cancel
+                                {uiT('Cancel')}
                             </Button>
                             <OverwriteButtons
                                 isDisabled={isSubmitDisabled}
@@ -264,7 +267,7 @@ function ResourcesMoveDialogForm({ files, onClose }: ResourcesMoveDialogFormProp
                                 }}
                                 overwriteLabel={overwriteCtaLabel}
                                 primaryIcon={FolderInput}
-                                primaryLabel="Move"
+                                primaryLabel={uiT('Move')}
                                 primaryType="submit"
                             />
                         </div>

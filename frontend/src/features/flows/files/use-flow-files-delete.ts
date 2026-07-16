@@ -5,6 +5,7 @@ import type { FileNode } from '@/components/shared/file-manager';
 
 import { buildPathsQuery } from '@/features/resources/resources-utils';
 import { api, getApiErrorMessage } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 
 import { FLOW_FILES_API_PATH } from './flow-files-constants';
 import { type FlowFilesResponse, pluralizeItems } from './flow-files-utils';
@@ -79,16 +80,16 @@ export function useFlowFilesDelete({ flowId, onAfterDelete }: UseFlowFilesDelete
 
                 if (filesToDelete.length === 1) {
                     const single = filesToDelete[0];
-                    toast.success(single.isDir ? 'Directory deleted' : 'File deleted');
+                    toast.success(single.isDir ? uiT('Directory deleted') : uiT('File deleted'));
                 } else {
                     toast.success(`${filesToDelete.length} ${pluralizeItems(filesToDelete.length)} deleted`);
                 }
 
                 onAfterDelete?.();
             } catch (error) {
-                const description = getApiErrorMessage(error, 'Failed to delete file');
+                const description = getApiErrorMessage(error, uiT('Failed to delete file'));
 
-                toast.error('Delete failed', { description });
+                toast.error(uiT('Delete failed'), { description });
             }
         },
         [flowId, onAfterDelete],

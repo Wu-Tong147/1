@@ -2,6 +2,7 @@ import type { AxiosError, AxiosRequestConfig } from 'axios';
 
 import Axios from 'axios';
 
+import { uiT } from '@/lib/i18n';
 import { AUTH_STORAGE_KEY } from '@/providers/user-provider';
 
 import { Log } from './log';
@@ -186,7 +187,7 @@ export const unwrapApiResponse = <T>(response: ApiResponse<T>): T => {
     if (!isApiSuccess(response) || response.data == null) {
         const message = !isApiSuccess(response) ? (response.msg ?? response.error) : undefined;
 
-        throw new Error(message ?? 'Unexpected response from server');
+        throw new Error(message ?? uiT('Unexpected response from server'));
     }
 
     return response.data;

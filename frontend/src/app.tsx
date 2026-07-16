@@ -1,5 +1,6 @@
 import { ApolloProvider } from '@apollo/client/react';
 import { lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     createBrowserRouter,
     createRoutesFromElements,
@@ -273,11 +274,16 @@ const router = createBrowserRouter(
 );
 
 function App() {
+    const { i18n } = useTranslation();
+
     return (
         <ApolloProvider client={client}>
             <ThemeProvider>
                 <Toaster />
-                <RouterProvider router={router} />
+                <RouterProvider
+                    key={i18n.resolvedLanguage || i18n.language}
+                    router={router}
+                />
             </ThemeProvider>
         </ApolloProvider>
     );

@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { StatusCard } from '@/components/ui/status-card';
 import { useTableState } from '@/hooks/use-table-state';
+import { uiT } from '@/lib/i18n';
 import { mergeHrefWithSearchParams } from '@/lib/url-params';
 import { type Template, useTemplates } from '@/providers/templates-provider';
 
@@ -82,7 +83,7 @@ function Templates() {
 
         try {
             await updateTemplate(editingTemplateId, { text: template.text, title: newTitle });
-            toast.success('Template renamed successfully');
+            toast.success(uiT('Template renamed successfully'));
             setEditingTemplateId(null);
         } catch {
             // Error already handled in provider with toast
@@ -131,7 +132,7 @@ function Templates() {
                                 inputRef={editingInputRef}
                                 onCancel={handleTemplateRenameCancel}
                                 onSave={handleTemplateRenameSave}
-                                placeholder="Template title"
+                                placeholder={uiT('Template title')}
                             />
                         </div>
                     );
@@ -142,7 +143,7 @@ function Templates() {
             header: ({ column }) => (
                 <DataTableColumnHeader
                     column={column}
-                    title="Title"
+                    title={uiT('Title')}
                 />
             ),
             meta: { searchable: true },
@@ -171,7 +172,7 @@ function Templates() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
-                                    aria-label="Open menu"
+                                    aria-label={uiT('Open menu')}
                                     className="size-8 p-0"
                                     onClick={(e) => e.stopPropagation()}
                                     variant="ghost"
@@ -190,7 +191,7 @@ function Templates() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleTemplateRenameStart(template)}>
                                     <Pencil className="size-3" />
-                                    Rename
+                                    {uiT('Rename')}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -200,12 +201,12 @@ function Templates() {
                                     {deletingIds.has(template.id) ? (
                                         <>
                                             <Loader2 className="size-4 animate-spin" />
-                                            Deleting...
+                                            {uiT('Deleting...')}
                                         </>
                                     ) : (
                                         <>
                                             <Trash className="size-4" />
-                                            Delete
+                                            {uiT('Delete')}
                                         </>
                                     )}
                                 </DropdownMenuItem>
@@ -230,7 +231,7 @@ function Templates() {
             </ContextMenuItem>
             <ContextMenuItem onClick={() => handleTemplateRenameStart(template)}>
                 <PencilLine />
-                Rename
+                {uiT('Rename')}
             </ContextMenuItem>
             <ContextMenuSeparator />
             <ContextMenuItem
@@ -238,7 +239,7 @@ function Templates() {
                 onClick={() => handleDeleteDialogOpen(template)}
             >
                 <Trash />
-                {deletingIds.has(template.id) ? 'Deleting...' : 'Delete'}
+                {deletingIds.has(template.id) ? uiT('Deleting...') : uiT('Delete')}
             </ContextMenuItem>
         </>
     );
@@ -255,7 +256,7 @@ function Templates() {
                     <BreadcrumbList className="min-w-0 flex-nowrap">
                         <BreadcrumbItem className="min-w-0">
                             <FileText className="size-4 shrink-0" />
-                            <BreadcrumbPage className="min-w-0 truncate">Templates</BreadcrumbPage>
+                            <BreadcrumbPage className="min-w-0 truncate">{uiT('Templates')}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -263,7 +264,7 @@ function Templates() {
             <div className="flex shrink-0 items-center gap-2 px-4">
                 <HeaderButton
                     icon={<Plus />}
-                    label="New Template"
+                    label={uiT('New Template')}
                     onClick={() => navigate('/templates/new')}
                     variant="secondary"
                 />
@@ -283,12 +284,12 @@ function Templates() {
                                 variant="secondary"
                             >
                                 <Plus className="size-4" />
-                                New Template
+                                {uiT('New Template')}
                             </Button>
                         }
-                        description="Create your first template to get started"
+                        description={uiT('Create your first template to get started')}
                         icon={<FileText className="text-muted-foreground size-8" />}
-                        title="No templates yet"
+                        title={uiT('No templates yet')}
                     />
                 </div>
             </>
@@ -303,7 +304,7 @@ function Templates() {
                     columns={columns}
                     data={templates}
                     empty={{ entityName: 'templates' }}
-                    filterPlaceholder="Filter templates..."
+                    filterPlaceholder={uiT('Filter templates...')}
                     filterValue={filter}
                     onFilterChange={setFilter}
                     onRowClick={(template) => {
@@ -315,8 +316,8 @@ function Templates() {
                 />
 
                 <ConfirmationDialog
-                    cancelText="Cancel"
-                    confirmText="Delete"
+                    cancelText={uiT('Cancel')}
+                    confirmText={uiT('Delete')}
                     handleConfirm={handleDelete}
                     handleOpenChange={setIsDeleteDialogOpen}
                     isOpen={isDeleteDialogOpen}

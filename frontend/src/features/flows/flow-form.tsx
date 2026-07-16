@@ -43,14 +43,21 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useResourcesUpload } from '@/features/resources/use-resources-upload';
+import { uiT } from '@/lib/i18n';
 import { getProviderDisplayName } from '@/models/provider';
 import { useProviders } from '@/providers/providers-provider';
 import { useResources } from '@/providers/resources-provider';
 import { type Template, useTemplates } from '@/providers/templates-provider';
 
 const formSchema = z.object({
-    message: z.string().trim().min(1, { message: 'Message cannot be empty' }),
-    providerName: z.string().trim().min(1, { message: 'Provider must be selected' }),
+    message: z
+        .string()
+        .trim()
+        .min(1, { message: uiT('Message cannot be empty') }),
+    providerName: z
+        .string()
+        .trim()
+        .min(1, { message: uiT('Provider must be selected') }),
     resourceIds: z.array(z.string()),
     useAgents: z.boolean(),
 });
@@ -79,7 +86,7 @@ export function FlowForm({
     isSubmitting,
     onCancel,
     onSubmit,
-    placeholder = 'Describe what you would like PentAGI to test...',
+    placeholder = uiT('Describe what you would like PentAGI to test...'),
     type,
 }: FlowFormProps) {
     const { providers, setSelectedProvider } = useProviders();
@@ -341,7 +348,7 @@ export function FlowForm({
                         onChange={(event) => setTemplateSearch(event.target.value)}
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={(event) => event.stopPropagation()}
-                        placeholder="Search..."
+                        placeholder={uiT('Search...')}
                         value={templateSearch}
                     />
                     {templateSearch && (
@@ -365,7 +372,7 @@ export function FlowForm({
                         className="min-h-16 justify-center"
                         disabled
                     >
-                        {templateSearch ? 'No results found' : 'No available templates'}
+                        {templateSearch ? uiT('No results found') : uiT('No available templates')}
                     </DropdownMenuItem>
                 ) : (
                     filteredTemplates.map((template) => (
@@ -395,7 +402,7 @@ export function FlowForm({
                         onChange={(event) => setResourceSearch(event.target.value)}
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={(event) => event.stopPropagation()}
-                        placeholder="Search..."
+                        placeholder={uiT('Search...')}
                         value={resourceSearch}
                     />
                     {resourceSearch && (
@@ -419,7 +426,7 @@ export function FlowForm({
                         className="min-h-16 justify-center"
                         disabled
                     >
-                        {resourceSearch ? 'No results found' : 'No available resources'}
+                        {resourceSearch ? uiT('No results found') : uiT('No available resources')}
                     </DropdownMenuItem>
                 ) : (
                     filteredResources.map((resource) => {
@@ -476,7 +483,7 @@ export function FlowForm({
                 }}
             >
                 {upload.isUploading ? <Loader2 className="animate-spin" /> : <Plus />}
-                {upload.isUploading ? 'Uploading…' : 'Upload files'}
+                {upload.isUploading ? uiT('Uploading…') : uiT('Upload files')}
             </DropdownMenuItem>
         </>
     );
@@ -559,7 +566,7 @@ export function FlowForm({
                                                             <span className="max-w-40 truncate">
                                                                 {currentProvider
                                                                     ? getProviderDisplayName(currentProvider)
-                                                                    : 'Select Provider'}
+                                                                    : uiT('Select Provider')}
                                                             </span>
                                                             <ChevronDown />
                                                         </InputGroupButton>
@@ -576,7 +583,7 @@ export function FlowForm({
                                                                     }
                                                                     onClick={(event) => event.stopPropagation()}
                                                                     onKeyDown={(event) => event.stopPropagation()}
-                                                                    placeholder="Search..."
+                                                                    placeholder={uiT('Search...')}
                                                                     value={providerSearch}
                                                                 />
                                                                 {providerSearch && (
@@ -601,8 +608,8 @@ export function FlowForm({
                                                                     disabled
                                                                 >
                                                                     {providerSearch
-                                                                        ? 'No results found'
-                                                                        : 'No available providers'}
+                                                                        ? uiT('No results found')
+                                                                        : uiT('No available providers')}
                                                                 </DropdownMenuItem>
                                                             ) : (
                                                                 filteredProviders.map((provider) => (
@@ -663,7 +670,7 @@ export function FlowForm({
                                                                         useAgentsField.onChange(!useAgentsField.value)
                                                                     }
                                                                 >
-                                                                    Use Agents
+                                                                    {uiT('Use Agents')}
                                                                 </FormLabel>
                                                             </FormItem>
                                                         </TooltipTrigger>
@@ -688,7 +695,7 @@ export function FlowForm({
                                     >
                                         <DropdownMenuTrigger asChild>
                                             <InputGroupButton
-                                                aria-label="Templates and resources"
+                                                aria-label={uiT('Templates and resources')}
                                                 className="ml-auto shrink-0"
                                                 disabled={isFormDisabled}
                                                 size="icon-xs"
@@ -740,7 +747,7 @@ export function FlowForm({
                                                         value="templates"
                                                     >
                                                         <FileText className="size-3.5" />
-                                                        Templates
+                                                        {uiT('Templates')}
                                                     </TabsTrigger>
                                                     <TabsTrigger
                                                         className="gap-1.5"
@@ -801,9 +808,9 @@ export function FlowForm({
             />
             <ConfirmationDialog
                 confirmIcon={<FileSymlink />}
-                confirmText="Replace"
+                confirmText={uiT('Replace')}
                 confirmVariant="default"
-                description="Current message has content. Replace with the selected template?"
+                description={uiT('Current message has content. Replace with the selected template?')}
                 handleConfirm={handleConfirmReplaceTemplate}
                 handleOpenChange={(open) => {
                     if (!open) {
@@ -813,7 +820,7 @@ export function FlowForm({
                     setIsReplaceConfirmOpen(open);
                 }}
                 isOpen={isReplaceConfirmOpen}
-                title="Replace content?"
+                title={uiT('Replace content?')}
             />
         </Form>
     );

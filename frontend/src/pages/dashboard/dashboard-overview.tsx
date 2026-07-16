@@ -15,6 +15,7 @@ import {
     useUsageStatsByProviderQuery,
     useUsageStatsTotalQuery,
 } from '@/graphql/types';
+import { uiT } from '@/lib/i18n';
 import { formatCost, formatDuration, formatNumber, formatTokenCount } from '@/lib/utils/format';
 
 export function DashboardOverview() {
@@ -57,36 +58,36 @@ export function DashboardOverview() {
                     description={`Tasks: ${flowsTotal?.totalTasksCount ?? 0} · Subtasks: ${flowsTotal?.totalSubtasksCount ?? 0} · Assistants: ${flowsTotal?.totalAssistantsCount ?? 0}`}
                     icon={<GitFork className="text-muted-foreground size-4" />}
                     loading={flowsTotalLoading}
-                    title="Total Flows"
+                    title={uiT('Total Flows')}
                     value={flowsTotal ? formatNumber(flowsTotal.totalFlowsCount) : '0'}
                 />
                 <MetricCard
                     description={`Total duration: ${toolcallsTotal ? formatDuration(toolcallsTotal.totalDurationSeconds) : '—'}`}
                     icon={<Activity className="text-muted-foreground size-4" />}
                     loading={toolcallsTotalLoading}
-                    title="Tool Calls"
+                    title={uiT('Tool Calls')}
                     value={toolcallsTotal ? formatNumber(toolcallsTotal.totalCount) : '0'}
                 />
                 <MetricCard
-                    description="Input + Output tokens processed"
+                    description={uiT('Input + Output tokens processed')}
                     icon={<Cpu className="text-muted-foreground size-4" />}
                     loading={usageTotalLoading}
-                    title="Total Tokens"
+                    title={uiT('Total Tokens')}
                     value={formatTokenCount(totalTokens)}
                 />
                 <MetricCard
-                    description="Total LLM spending across all providers"
+                    description={uiT('Total LLM spending across all providers')}
                     icon={<CircleDollarSign className="text-muted-foreground size-4" />}
                     loading={usageTotalLoading}
-                    title="Total Cost"
+                    title={uiT('Total Cost')}
                     value={formatCost(totalCost)}
                 />
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Usage by Provider</CardTitle>
-                    <CardDescription>LLM token usage and costs grouped by provider</CardDescription>
+                    <CardTitle>{uiT('Usage by Provider')}</CardTitle>
+                    <CardDescription>{uiT('LLM token usage and costs grouped by provider')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {usageByProviderLoading ? <LoadingTable /> : <UsageStatsTable rows={providerRows} />}
@@ -95,8 +96,8 @@ export function DashboardOverview() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Usage by Model</CardTitle>
-                    <CardDescription>LLM token usage and costs grouped by model</CardDescription>
+                    <CardTitle>{uiT('Usage by Model')}</CardTitle>
+                    <CardDescription>{uiT('LLM token usage and costs grouped by model')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {usageByModelLoading ? <LoadingTable /> : <UsageStatsTable rows={modelRows} />}
@@ -105,8 +106,8 @@ export function DashboardOverview() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Usage by Agent Type</CardTitle>
-                    <CardDescription>LLM token usage and costs grouped by agent type</CardDescription>
+                    <CardTitle>{uiT('Usage by Agent Type')}</CardTitle>
+                    <CardDescription>{uiT('LLM token usage and costs grouped by agent type')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {usageByAgentTypeLoading ? <LoadingTable /> : <UsageStatsTable rows={agentTypeRows} />}
@@ -115,8 +116,8 @@ export function DashboardOverview() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Tool Calls by Function</CardTitle>
-                    <CardDescription>Execution statistics for each tool function</CardDescription>
+                    <CardTitle>{uiT('Tool Calls by Function')}</CardTitle>
+                    <CardDescription>{uiT('Execution statistics for each tool function')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {toolcallsByFunctionLoading ? (
@@ -125,11 +126,15 @@ export function DashboardOverview() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="whitespace-nowrap">Function</TableHead>
-                                    <TableHead className="whitespace-nowrap">Type</TableHead>
-                                    <TableHead className="text-right whitespace-nowrap">Count</TableHead>
-                                    <TableHead className="text-right whitespace-nowrap">Total Duration</TableHead>
-                                    <TableHead className="text-right whitespace-nowrap">Avg Duration</TableHead>
+                                    <TableHead className="whitespace-nowrap">{uiT('Function')}</TableHead>
+                                    <TableHead className="whitespace-nowrap">{uiT('Type')}</TableHead>
+                                    <TableHead className="text-right whitespace-nowrap">{uiT('Count')}</TableHead>
+                                    <TableHead className="text-right whitespace-nowrap">
+                                        {uiT('Total Duration')}
+                                    </TableHead>
+                                    <TableHead className="text-right whitespace-nowrap">
+                                        {uiT('Avg Duration')}
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -138,7 +143,7 @@ export function DashboardOverview() {
                                         <TableCell className="font-medium">{item.functionName}</TableCell>
                                         <TableCell>
                                             <Badge variant={item.isAgent ? 'secondary' : 'outline'}>
-                                                {item.isAgent ? 'Agent' : 'Tool'}
+                                                {item.isAgent ? uiT('Agent') : uiT('Tool')}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">{formatNumber(item.totalCount)}</TableCell>
@@ -189,14 +194,14 @@ function UsageStatsTable({ rows }: { rows: Array<{ label: string; stats: UsageSt
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead className="whitespace-nowrap">Name</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Tokens In</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Tokens Out</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Cache In</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Cache Out</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Cost In</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Cost Out</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Total Cost</TableHead>
+                    <TableHead className="whitespace-nowrap">{uiT('Name')}</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">{uiT('Tokens In')}</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">{uiT('Tokens Out')}</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">{uiT('Cache In')}</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">{uiT('Cache Out')}</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">{uiT('Cost In')}</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">{uiT('Cost Out')}</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">{uiT('Total Cost')}</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>

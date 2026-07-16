@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import type { AuthInfo } from '@/models/info';
 
 import { api } from '@/lib/axios';
+import { uiT } from '@/lib/i18n';
 import { getReturnUrlParam } from '@/lib/utils/auth';
 import { baseUrl } from '@/models/api';
 
@@ -189,7 +190,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
                 return { success: true };
             } catch {
-                const errorMessage = 'Login failed. Please try again.';
+                const errorMessage = uiT('Login failed. Please try again.');
                 toast.error(errorMessage);
 
                 return { error: errorMessage, success: false };
@@ -213,7 +214,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             );
 
             if (!popup) {
-                const errorMessage = 'Popup blocked. Please allow popups for this site.';
+                const errorMessage = uiT('Popup blocked. Please allow popups for this site.');
                 toast.error(errorMessage);
 
                 return {
@@ -233,7 +234,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         clearInterval(popupCheck);
                         clearTimeout(timeoutId);
                         window.removeEventListener('message', messageHandler);
-                        const errorMessage = 'Authentication cancelled';
+                        const errorMessage = uiT('Authentication cancelled');
                         toast.info(errorMessage);
                         resolve({
                             error: errorMessage,
@@ -252,7 +253,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                             popup.close();
                         }
 
-                        const errorMessage = 'Authentication timeout';
+                        const errorMessage = uiT('Authentication timeout');
                         toast.error(errorMessage);
                         resolve({
                             error: errorMessage,
@@ -335,13 +336,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     setAuth(info.data);
                 } else {
                     clearAuth();
-                    toast.error('Session expired. Please login again.');
+                    toast.error(uiT('Session expired. Please login again.'));
                     const returnParam = getReturnUrlParam(location.pathname);
                     navigate(`/login${returnParam}`);
                 }
             } catch {
                 clearAuth();
-                toast.error('Session expired. Please login again.');
+                toast.error(uiT('Session expired. Please login again.'));
                 const returnParam = getReturnUrlParam(location.pathname);
                 navigate(`/login${returnParam}`);
             }
